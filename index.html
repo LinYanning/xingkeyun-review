@@ -862,10 +862,9 @@ function renderTeacher(asSquare){
 }
 
 /* ================= 启动 ================= */
-window.addEventListener('hashchange',renderRoute);
+window.addEventListener('hashchange', ()=>{ loadData(); renderRoute(); });
 renderApp();
 loadData();
-setInterval(()=>loadData(),4000);
 </script>
 </body>
 </html>
