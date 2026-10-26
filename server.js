@@ -121,12 +121,40 @@ app.post('/api/work/:id/feature', (req, res) => {
   res.json({ ok: true, featured: w.featured });
 });
 
-/* 文件服务（res.sendFile 自动支持 Range，可拖动进度条） */
+/* 文件服务：手动实现 Range 请求，确保浏览器 <video> 正常播放 */
+const MIME = { '.mp4':'video/mp4', '.mov':'video/quicktime', '.avi':'video/x-msvideo', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png' };
 app.get('/api/file/:name', (req, res) => {
-  const f = path.basename(req.params.name); // 防止目录穿越
+  const f = path.basename(req.params.name);
   const p = path.join(UPLOAD_DIR, f);
   if (!fs.existsSync(p)) return res.status(404).end();
-  res.sendFile(p);
+  const stat = fs.statSync(p);
+  const ext = (path.extname(f) || '').toLowerCase();
+  const contentType = MIME[ext] || 'application/octet-stream';
+  const size = stat.size;
+
+  // 尝试发送整个文件（让 Express 自动处理 Range），但先手动设置关键 header
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Accept-Ranges', 'bytes');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Last-Modified', stat.mtime.toUTCString());
+  res.setHeader('ETag', JSON.stringify(`${stat.size}-${stat.mtimeMs}`));
+  res.setHeader('Content-Length', size);
+
+  const range = req.headers.range;
+  if (range && /^bytes=(\d*)-(\d*)$/.test(range)) {
+    const m = range.match(/^bytes=(\d*)-(\d*)$/);
+    let start = parseInt(m[1]) || 0;
+    let end = m[2] ? parseInt(m[2]) : size - 1;
+    if (start >= size) { res.status(416).setHeader('Content-Range', `bytes */${size}`).end(); return; }
+    if (end >= size) end = size - 1;
+    res.status(206);
+    res.setHeader('Content-Length', end - start + 1);
+    res.setHeader('Content-Range', `bytes ${start}-${end}/${size}`);
+    fs.createReadStream(p, { start, end }).pipe(res);
+  } else {
+    res.status(200);
+    fs.createReadStream(p).pipe(res);
+  }
 });
 
 /* 统一错误处理（如超限、类型不符） */
