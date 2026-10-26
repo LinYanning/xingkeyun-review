@@ -653,7 +653,7 @@ function renderWork(wid){
         <div class="player-box">
           ${avg!=null&&avg>=90?'<span class="p-badge ex">优秀作品</span>':''}
           ${rankIdx>=0?`<span class="p-badge rk">第${rankIdx+1}名</span>`:''}
-          <video id="player" controls preload="metadata" ${w.cover?`poster="/api/file/${w.cover}"`:''} src="/api/file/${w.file}"></video>
+          <video id="player" controls preload="auto" playsinline webkit-playsinline ${w.cover?`poster="/api/file/${w.cover}"`:''} src="/api/file/${w.file}" onpause="console.warn('[VIDEO_PAUSE]',new Error().stack)"></video>
         </div>
         <div class="panel info-panel">
           <div class="info-head">
