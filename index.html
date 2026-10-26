@@ -245,7 +245,6 @@
 const GROUPS = Array.from({length:8},(_,i)=>({id:'g'+(i+1), name:'第'+(i+1)+'组'}));
 const TEACHER_PIN = '123456';
 const DEADLINE = new Date('2026-10-29T23:59:59');
-const SUBJECTS = ['健康常识','运动健康','心理健康','营养饮食','疾病预防','急救知识'];
 const DIMS = [['content','内容完整性'],['creativity','创意表现'],['tech','技术制作'],['team','团队协作'],['expr','表达清晰度']];
 const QUICK_TAGS = ['画面精美','逻辑清晰','配音专业','创意十足'];
 const AV_COLORS = ['#5b8def','#8a63d2','#e0648a','#3aa78d','#e0913a','#4aa3e0','#6b7fd7','#c05a3a'];
@@ -499,11 +498,7 @@ function renderUpload(){
           <div><div class="f-label">作品标题</div><input class="f-input" id="fTitle" placeholder="如：城市水循环的秘密" value="${esc(myWork?myWork.title:'')}"></div>
           <div><div class="f-label">所属小组</div><select class="f-select" disabled><option>${gName}</option></select></div>
         </div>
-        <div class="f-block"><div class="f-label">作品简介</div><textarea class="f-area" id="fDesc" placeholder="简要介绍作品内容与创意…">${esc(myWork?myWork.desc:'')}</textarea></div>
-        <div class="f-grid">
-          <div><div class="f-label">组员（回车添加）</div><div class="tag-input" id="memTags"></div></div>
-          <div><div class="f-label">学科分类</div><select class="f-select" id="fSubject">${SUBJECTS.map(s=>`<option ${myWork&&myWork.subject===s?'selected':''}>${s}</option>`).join('')}</select></div>
-        </div>
+        <div class="f-block"><div class="f-label">组员（回车添加）</div><div class="tag-input" id="memTags"></div></div>
         <div class="form-actions">
           <button class="btn btn-ghost" id="btnCancel">取消</button>
           <button class="btn btn-blue" id="btnSubmit">${myWork?'重新提交（覆盖原作品）':'提交作品'}</button>
@@ -601,8 +596,6 @@ function submitWork(){
   const fd=new FormData();
   fd.append('groupId',ME.group);
   fd.append('title',title);
-  fd.append('desc',$('#fDesc').value.trim());
-  fd.append('subject',$('#fSubject').value);
   fd.append('members',upMembers.join(','));
   fd.append('duration',upDuration);
   fd.append('video',upFile);
@@ -644,7 +637,7 @@ function renderWork(wid){
 
   $('#view').innerHTML = `<div class="page">
     <div class="pg-head">
-      <div><h1>作品播放与评分详情</h1><div class="sub">${gName} · ${esc(w.subject||'健康科普')}</div></div>
+      <div><h1>作品播放与评分详情</h1><div class="sub">${gName}</div></div>
       <div class="sp"></div>
       <button class="btn btn-ghost" onclick="history.back()">← 退回${ME.role==='teacher'?'排名榜':'视频广场'}</button>
     </div>
@@ -669,7 +662,7 @@ function renderWork(wid){
           <div class="mem-row">
             ${(w.members||[]).map(m=>`<span class="m-item">${avatar(m)}${esc(m)}</span>`).join('')}
           </div>
-          <div class="desc">${esc(w.desc||'本组暂未填写作品简介。')}</div>
+          ${w.desc?`<div class="desc">${esc(w.desc)}</div>`:''}
         </div>
         <div class="panel" style="margin-top:20px">
           <h2>同学评价 <span style="font-size:12px;color:var(--muted);font-weight:600">${rs.length} 条</span></h2>
@@ -771,7 +764,18 @@ function renderMy(){
 }
 
 /* ================= 教师看板 ================= */
+let teacherTimer=null;
+async function delWork(id,name){
+  if(!confirm(`确定删除「${name}」？\n视频、封面与全部评分将被清除，且不可恢复！`)) return;
+  try{
+    const res=await fetch('/api/work/'+id,{method:'DELETE'});
+    if(!res.ok) throw new Error();
+    toast('🗑️ 作品已删除');
+    await loadData(false); renderTeacher();
+  }catch(e){ toast('删除失败，请重试'); }
+}
 function renderTeacher(asSquare){
+  clearInterval(teacherTimer);
   const works=Object.entries(DATA.works).map(([id,w])=>({id,...w}));
   const ranked=rankedWorks();
   const allAvgs=ranked.map(w=>w.avg);
@@ -806,7 +810,7 @@ function renderTeacher(asSquare){
         <div style="display:flex;align-items:center;margin-bottom:14px"><h2 style="margin:0">完整排行榜</h2><span style="flex:1"></span><button class="btn btn-ghost" style="padding:7px 16px;font-size:12px" onclick="location.hash='#/square'">查看作品</button></div>
         ${ranked.length===0?`<div style="text-align:center;color:var(--muted);font-size:13px;padding:44px 0">📭 尚无作品获得评分<br><span style="font-size:11.5px">作品被其他小组评分后将自动上榜</span></div>`
         :`<table class="rank">
-          <thead><tr><th style="width:56px">排名</th><th>小组</th><th>作品名称</th><th>平均分</th><th>评分人次</th><th>趋势</th></tr></thead>
+          <thead><tr><th style="width:56px">排名</th><th>小组</th><th>作品名称</th><th>平均分</th><th>评分人次</th><th>趋势</th><th style="width:64px">操作</th></tr></thead>
           <tbody>
           ${ranked.map((w,i)=>{
             const gName=GROUPS.find(g=>g.id===w.id)?.name||w.id;
@@ -820,6 +824,7 @@ function renderTeacher(asSquare){
               <td><span class="cell-score ${i===0?'s1':i===1?'s2':i===2?'s3':''}">${w.avg.toFixed(1)}</span></td>
               <td>${w.rc}人已评<div class="cell-sub">${w.views||0} 次观看</div></td>
               <td><div class="spark">${spark||'<span class="cell-sub">—</span>'}</div></td>
+              <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:12px;color:#e5484d" onclick="event.stopPropagation();delWork('${w.id}','${esc(w.title)}')">删除</button></td>
             </tr>`;}).join('')}
           </tbody>
         </table>`}
@@ -859,6 +864,12 @@ function renderTeacher(asSquare){
   };
   const br=$('#btnRemind');
   if(br) br.onclick=()=>toast(`📢 已提醒 ${incomplete.length} 个小组尽快完成互评`);
+
+  /* 实时刷新：每 4 秒拉取最新数据并重渲染看板 */
+  teacherTimer=setInterval(()=>{
+    if(location.hash!=='#/teacher'||!ME||ME.role!=='teacher'){ clearInterval(teacherTimer); return; }
+    loadData();
+  },4000);
 }
 
 /* ================= 启动 ================= */

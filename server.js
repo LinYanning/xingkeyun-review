@@ -121,6 +121,19 @@ app.post('/api/work/:id/feature', (req, res) => {
   res.json({ ok: true, featured: w.featured });
 });
 
+/* 教师删除作品（视频/封面文件与全部评分一并清除） */
+app.delete('/api/work/:id', (req, res) => {
+  const data = loadData();
+  const w = data.works[req.params.id];
+  if (!w) return res.status(404).json({ error: '作品不存在' });
+  fs.promises.unlink(path.join(UPLOAD_DIR, w.file)).catch(() => {});
+  if (w.cover) fs.promises.unlink(path.join(UPLOAD_DIR, w.cover)).catch(() => {});
+  delete data.works[req.params.id];
+  delete data.ratings[req.params.id];
+  saveData(data);
+  res.json({ ok: true });
+});
+
 /* 文件服务：手动实现 Range 请求，确保浏览器 <video> 正常播放 */
 const MIME = { '.mp4':'video/mp4', '.mov':'video/quicktime', '.avi':'video/x-msvideo', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.png':'image/png' };
 app.get('/api/file/:name', (req, res) => {
