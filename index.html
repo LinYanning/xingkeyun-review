@@ -9,8 +9,8 @@
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   :root{
-    --blue:#4A7DF9; --blue-d:#3563d9; --ink:#20242e; --muted:#8a93a6;
-    --bg:#eef1f8; --card:#fff; --side:#f5f7fe; --navy:#1b2334; --navy-2:#242f45;
+    --blue:#3d5af1; --blue-d:#2e46c9; --ink:#20242e; --muted:#8a93a6;
+    --bg:#eef1f8; --card:#fff; --side:#ffffff; --navy:#1e2a4a; --navy-2:#28355a;
     --gold:#F6C445; --orange:linear-gradient(135deg,#ffb53b,#ff7e36);
     --shadow:0 6px 24px rgba(31,60,136,.07);
   }
@@ -24,8 +24,13 @@
   aside{ width:208px; flex-shrink:0; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; padding:22px 14px 16px; background:var(--side); border-right:1px solid #e6ebf6; }
   aside.dark{ background:var(--navy); border-right:none; color:#c6cede; }
   .brand{ display:flex; align-items:center; gap:9px; padding:0 8px 20px; font-weight:800; font-size:15.5px; }
+  .brand-block{ display:flex; align-items:center; gap:9px; background:linear-gradient(135deg,#5b8cff,#3d5af1); color:#fff; border-radius:14px; padding:12px 11px; margin-bottom:18px; box-shadow:0 6px 16px rgba(61,90,241,.28); }
+  .brand-block .bb-ic{ width:31px; height:31px; border-radius:9px; background:rgba(255,255,255,.2); display:grid; place-items:center; flex-shrink:0; }
+  .brand-block .bb-ic svg{ width:16px; height:16px; }
+  .brand-block b{ font-size:12.8px; display:block; white-space:nowrap; }
+  .brand-block small{ font-size:9.5px; opacity:.85; font-weight:500; display:block; margin-top:2px; white-space:nowrap; }
   .brand .b-icon{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-size:17px;
-    background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; box-shadow:0 4px 12px rgba(59,110,246,.35); }
+    background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; box-shadow:0 4px 12px rgba(61,90,241,.35); }
   .brand small{ display:block; font-size:10.5px; color:var(--muted); font-weight:500; }
   aside.dark .brand small{ color:#7c88a3; }
   .menu{ display:flex; flex-direction:column; gap:4px; }
@@ -33,12 +38,13 @@
     display:flex; align-items:center; gap:10px; border:none; background:transparent; text-align:left;
     padding:11px 14px; border-radius:11px; font-size:13.5px; font-weight:600; color:#5a6478; cursor:pointer; transition:.15s;
   }
-  .menu button .m-ic{ font-size:16px; width:20px; text-align:center; }
-  .menu button:hover{ background:#eaeffa; }
-  .menu button.active{ background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; box-shadow:0 5px 14px rgba(59,110,246,.32); }
+  .menu button .m-ic{ width:20px; display:grid; place-items:center; }
+  .menu button .m-ic svg{ display:block; }
+  .menu button:hover{ background:#f0f4fd; }
+  .menu button.active{ background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; box-shadow:0 5px 14px rgba(61,90,241,.32); }
   aside.dark .menu button{ color:#aab4cc; }
   aside.dark .menu button:hover{ background:var(--navy-2); }
-  aside.dark .menu button.active{ background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; }
+  aside.dark .menu button.active{ background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; }
   .side-foot{ margin-top:auto; }
   .user-card{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e6ebf6; border-radius:14px; padding:10px 12px; cursor:pointer; transition:.15s; }
   .user-card:hover{ box-shadow:var(--shadow); }
@@ -64,7 +70,7 @@
   .search-box input{ border:none; outline:none; flex:1; font-size:13px; font-family:inherit; background:transparent; }
   .seg{ display:flex; gap:7px; }
   .seg button{ border:none; background:#e6ebf6; color:#5a6478; padding:8px 20px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
-  .seg button.active{ background:var(--blue); color:#fff; box-shadow:0 4px 12px rgba(74,125,249,.3); }
+  .seg button.active{ background:var(--blue); color:#fff; box-shadow:0 4px 12px rgba(61,90,241,.3); }
 
   .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
   .stat-card{ background:var(--card); border-radius:15px; padding:17px 20px; display:flex; align-items:center; gap:15px; box-shadow:var(--shadow); }
@@ -75,7 +81,7 @@
   .stat-card .delta{ font-size:11px; margin-top:2px; color:var(--muted); }
 
   .btn{ border:none; border-radius:11px; padding:10px 22px; font-size:13.5px; font-weight:700; cursor:pointer; transition:.18s; }
-  .btn-blue{ background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; box-shadow:0 5px 14px rgba(59,110,246,.32); }
+  .btn-blue{ background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; box-shadow:0 5px 14px rgba(61,90,241,.32); }
   .btn-blue:hover{ transform:translateY(-1px); }
   .btn-ghost{ background:#eef2fb; color:#4a5470; }
   .btn-ghost:hover{ background:#e2e9f8; }
@@ -107,7 +113,7 @@
   .stars{ font-size:19px; letter-spacing:2px; color:#FFB61E; line-height:1; }
   .stars .off{ color:#dde2ec; }
   .mini-btn{ border:none; border-radius:9px; padding:8px 16px; font-size:12.5px; font-weight:700; cursor:pointer; transition:.15s; }
-  .mini-btn.go{ background:var(--blue); color:#fff; box-shadow:0 4px 10px rgba(74,125,249,.3); }
+  .mini-btn.go{ background:var(--blue); color:#fff; box-shadow:0 4px 10px rgba(61,90,241,.3); }
   .mini-btn.done{ background:#e8f8ef; color:#22a35c; }
 
   /* ---------- 上传页 ---------- */
@@ -127,7 +133,7 @@
   .cover-row{ display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
   .cover-opt{ width:88px; height:58px; border-radius:10px; border:2.5px solid transparent; overflow:hidden; cursor:pointer; position:relative; background:#e8edf7; }
   .cover-opt img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .cover-opt.sel{ border-color:var(--blue); box-shadow:0 3px 10px rgba(59,110,246,.3); }
+  .cover-opt.sel{ border-color:var(--blue); box-shadow:0 3px 10px rgba(61,90,241,.3); }
   .cover-opt .ck{ position:absolute; right:4px; top:4px; width:19px; height:19px; border-radius:50%; background:#22c55e; color:#fff; font-size:11px; display:grid; place-items:center; }
   .f-label{ font-size:12.5px; font-weight:700; color:#3c4454; margin:0 0 7px; }
   .f-input,.f-area,.f-select{ width:100%; border:1px solid #dbe2f0; border-radius:11px; padding:11px 13px; font-size:13.5px; font-family:inherit; outline:none; background:#fff; transition:.15s; }
@@ -194,6 +200,9 @@
   table.rank tbody tr{ cursor:pointer; transition:background .13s; }
   table.rank tbody tr:hover{ background:#f5f8ff; }
   .rk-medal{ font-size:19px; } .rk-num{ display:inline-grid; place-items:center; width:26px; height:26px; border-radius:9px; background:#eef1f7; color:#7a8499; font-size:12.5px; font-weight:700; }
+  table.rank tbody tr.r1{ background:#fff8e1; } table.rank tbody tr.r1:hover{ background:#fff2c9; }
+  table.rank tbody tr.r2{ background:#f4f6fa; } table.rank tbody tr.r2:hover{ background:#eceff6; }
+  table.rank tbody tr.r3{ background:#fdf1e7; } table.rank tbody tr.r3:hover{ background:#fae8da; }
   .cell-score{ font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
   .cell-score.s1{ color:#d99a12; } .cell-score.s2{ color:var(--blue); } .cell-score.s3{ color:#e0643a; }
   .cell-sub{ font-size:11px; color:var(--muted); }
@@ -250,6 +259,23 @@ const QUICK_TAGS = ['画面精美','逻辑清晰','配音专业','创意十足']
 const AV_COLORS = ['#5b8def','#8a63d2','#e0648a','#3aa78d','#e0913a','#4aa3e0','#6b7fd7','#c05a3a'];
 
 let DATA = { works:{}, ratings:{} };
+
+/* 线性 SVG 图标（菜单/品牌，跟随文字颜色） */
+const SVG = (d,extra='') => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}${extra}</svg>`;
+const ICONS = {
+  cloud: SVG('<path d="M7 18a4.5 4.5 0 1 1 .6-8.96A6 6 0 0 1 19 11.3 3.5 3.5 0 0 1 18 18z" fill="currentColor" stroke="none"/>'),
+  square: SVG('<rect x="3" y="4" width="18" height="16" rx="3"/>','<path d="M10.2 9.3l4.8 2.7-4.8 2.7z" fill="currentColor" stroke="none"/>'),
+  upload: SVG('<path d="M12 16V5.5"/>','<path d="M7.5 9.5 12 5l4.5 4.5"/><path d="M4 16v2.6A2.4 2.4 0 0 0 6.4 21h11.2a2.4 2.4 0 0 0 2.4-2.4V16"/>'),
+  star: SVG('<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>'),
+  msg: SVG('<path d="M21 11.8A7.8 7.8 0 0 1 13.2 19H4.5l2-3A7.8 7.8 0 1 1 21 11.8z"/>'),
+  user: SVG('<circle cx="12" cy="8.2" r="3.8"/>','<path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/>'),
+  board: SVG('<path d="M4 20V11"/><path d="M10 20V4.5"/><path d="M16 20v-6.5"/><path d="M2.5 20h19"/>'),
+  doc: SVG('<rect x="4.5" y="3.5" width="15" height="17" rx="3"/>','<path d="M8.7 12.4l2.2 2.2 4.4-4.4"/>'),
+  users: SVG('<circle cx="9.2" cy="8.6" r="3.4"/>','<path d="M3 19.5a6.4 6.4 0 0 1 12.4 0"/><path d="M15.8 5.8a3.4 3.4 0 0 1 0 5.6"/><path d="M17.4 14.2a6.4 6.4 0 0 1 3.6 5.3"/>'),
+  chart: SVG('<path d="M3.5 20.5h17"/><rect x="5.5" y="10" width="3.4" height="7.5" rx="1.2"/><rect x="10.5" y="5.5" width="3.4" height="12" rx="1.2"/><rect x="15.5" y="13" width="3.4" height="4.5" rx="1.2"/>'),
+  gear: SVG('<circle cx="12" cy="12" r="3.1"/>','<path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M5.6 18.4l1.7-1.7M16.7 7.3l1.7-1.7"/>'),
+  star2: SVG('<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>')
+};
 let ME = JSON.parse(localStorage.getItem('xkj_identity') || 'null');
 let uploading = false;
 
@@ -349,13 +375,15 @@ function renderApp(){
   if(!ME){ $('#app').innerHTML=''; openIdentityModal(); return; }
   const dark = ME.role==='teacher';
   const menus = dark
-    ? [['#/teacher','📊','排名榜',true],['','📋','作品审核',false],['','⭐','评分管理',false],['','👥','班级管理',false],['','📈','数据分析',false],['','⚙️','设置',false]]
-    : [['#/square','🎬','视频广场',true],['#/upload','⬆️','上传作品',true],['#/my','⭐','我的评分',true],['','💬','消息通知',false],['','👤','个人中心',false]];
+    ? [['#/teacher',ICONS.board,'排名榜',true],['',ICONS.doc,'作品审核',false],['',ICONS.star,'评分管理',false],['',ICONS.users,'班级管理',false],['',ICONS.chart,'数据分析',false],['',ICONS.gear,'设置',false]]
+    : [['#/square',ICONS.square,'视频广场',true],['#/upload',ICONS.upload,'上传作品',true],['#/my',ICONS.star,'我的评分',true],['',ICONS.msg,'消息通知',false],['',ICONS.user,'个人中心',false]];
   $('#app').innerHTML = `
     <aside class="${dark?'dark':''}">
-      <div class="brand"><span class="b-icon">${dark?'📊':'☁️'}</span>
-        <div>星课云 · ${dark?'教学看板':'作品互评'}<small>AI健康科普视频制作</small></div>
-      </div>
+      ${dark
+        ? `<div class="brand"><span class="b-icon">${ICONS.board}</span>
+            <div>星课云 · 教学看板<small>AI健康科普视频制作</small></div></div>`
+        : `<div class="brand-block"><span class="bb-ic">${ICONS.cloud}</span>
+            <div><b>星课云 · 作品互评</b><small>AI健康科普视频制作</small></div></div>`}
       <nav class="menu">
         ${menus.map(([h,ic,lb,ok])=>`<button data-h="${h}" data-ok="${ok}"><span class="m-ic">${ic}</span>${lb}</button>`).join('')}
       </nav>
@@ -817,7 +845,7 @@ function renderTeacher(asSquare){
             const rs=workRatings(w.id).sort((a,b)=>a.time-b.time);
             const spark=rs.map(r=>{const s=rateScore(r);return `<i style="height:${Math.max(4,Math.round(s/100*26))}px;${s<60?'background:#e3e8f2':''}"></i>`;}).join('');
             const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':null;
-            return `<tr onclick="location.hash='#/work/${w.id}'">
+            return `<tr class="${i<3?'r'+(i+1):''}" onclick="location.hash='#/work/${w.id}'">
               <td>${medal?`<span class="rk-medal">${medal}</span>`:`<span class="rk-num">${i+1}</span>`}</td>
               <td><div style="display:flex;align-items:center;gap:8px">${avatar(gName,'av-30')}<b>${gName}</b></div></td>
               <td>${esc(w.title)}</td>
