@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><title>直接视频测试</title></head><body style="margin:40px;font-family:sans-serif">
+<h2>本地 localhost</h2>
+<video controls style="max-width:600px" preload="auto"
+       src="http://localhost:8899/api/file/local_test.mp4"></video>
+<p><button id="lbtn">程序化 play()</button> <span id="lres"></span></p>
+<h2>线上 Fly</h2>
+<video controls style="max-width:600px" preload="auto"
+       src="https://xingkeyun-review.fly.dev/api/file/g3_video_1792981036364.mp4"></video>
+<p><button id="fbtn">程序化 play()</button> <span id="fres"></span></p>
+<pre id="log"></pre>
+<script>
+function btn(vid, out) {
+  const v = document.getElementById(vid);
+  const o = document.getElementById(out);
+  v.play().then(()=>{ o.textContent='play() OK, paused='+v.paused+' cur='+v.currentTime; }).catch(e=>{ o.textContent='play() FAIL: '+e.name+': '+e.message; });
+}
+document.getElementById('lbtn').onclick=()=>btn('lv','lres');
+document.getElementById('fbtn').onclick=()=>btn('fv','fres');
+// 等待加载后自动尝试
+setTimeout(()=>{
+  ['lv','fv'].forEach(id=>{
+    const v=document.getElementById(id);
+    const r=new XMLHttpRequest();
+    r.open('HEAD',v.src,true);r.onload=()=>{
+      document.getElementById('log').textContent+='\n'+id+' status='+r.status+' type='+r.getResponseHeader('content-type')+' range='+r.getResponseHeader('accept-ranges');
+    };r.send();
+  });
+},1500);
+</script></body></html>

@@ -285,7 +285,7 @@ async function loadData(rerender=true){
   try{
     const [w,r] = await Promise.all([fetch('/api/works').then(x=>x.json()), fetch('/api/ratings').then(x=>x.json())]);
     DATA = {works:w, ratings:r};
-    if(rerender && !uploading && location.hash!=='#/upload' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) renderRoute();
+    if(rerender && !uploading && !['#/upload','#/my'].includes(location.hash) && !location.hash.startsWith('#/work') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) renderRoute();
   }catch(e){}
 }
 async function api(url, body){
@@ -551,8 +551,9 @@ async function pickFile(f){
   const ext=(f.name.split('.').pop()||'').toLowerCase();
   if(!['mp4','mov','avi'].includes(ext)) return toast('仅支持 MP4 / MOV / AVI 视频');
   if(f.size>2*1024*1024*1024) return toast('文件超过 2GB 上限');
+  const up=$('#upProg'); if(!up) return; // 必须在上传页
   upFile=f;
-  $('#upProg').style.display='block';
+  up.style.display='block';
   $('#upName').textContent=f.name; $('#upSize').textContent=(f.size/1024/1024).toFixed(0)+'MB';
   $('#upPct').textContent='解析中…'; $('#upBar').style.width='0%';
   try{
