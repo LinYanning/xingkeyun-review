@@ -20,7 +20,7 @@ docker stop $APP 2>/dev/null || true
 docker rm   $APP 2>/dev/null || true
 
 docker run -d --name $APP --restart always \
-  -p 80:8080 \
+  -p 80:8899 \
   -e DATA_DIR=/data \
   -v $DATA:/data \
   $APP
