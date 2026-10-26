@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>星课云·作品互评 — AI健康科普视频制作</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root{
+    --blue:#4A7DF9; --blue-d:#3563d9; --ink:#20242e; --muted:#8a93a6;
+    --bg:#eef1f8; --card:#fff; --side:#f5f7fe; --navy:#1b2334; --navy-2:#242f45;
+    --gold:#F6C445; --orange:linear-gradient(135deg,#ffb53b,#ff7e36);
+    --shadow:0 6px 24px rgba(31,60,136,.07);
+  }
+  body{ font-family:'Inter','Noto Sans SC','PingFang SC',sans-serif; background:var(--bg); color:var(--ink); }
+  button{ font-family:inherit; }
+  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#cdd5e6; border-radius:8px; }
+
+  #app{ display:flex; min-height:100vh; }
+
+  /* ---------- 侧栏 ---------- */
+  aside{ width:208px; flex-shrink:0; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; padding:22px 14px 16px; background:var(--side); border-right:1px solid #e6ebf6; }
+  aside.dark{ background:var(--navy); border-right:none; color:#c6cede; }
+  .brand{ display:flex; align-items:center; gap:9px; padding:0 8px 20px; font-weight:800; font-size:15.5px; }
+  .brand .b-icon{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-size:17px;
+    background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; box-shadow:0 4px 12px rgba(59,110,246,.35); }
+  .brand small{ display:block; font-size:10.5px; color:var(--muted); font-weight:500; }
+  aside.dark .brand small{ color:#7c88a3; }
+  .menu{ display:flex; flex-direction:column; gap:4px; }
+  .menu button{
+    display:flex; align-items:center; gap:10px; border:none; background:transparent; text-align:left;
+    padding:11px 14px; border-radius:11px; font-size:13.5px; font-weight:600; color:#5a6478; cursor:pointer; transition:.15s;
+  }
+  .menu button .m-ic{ font-size:16px; width:20px; text-align:center; }
+  .menu button:hover{ background:#eaeffa; }
+  .menu button.active{ background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; box-shadow:0 5px 14px rgba(59,110,246,.32); }
+  aside.dark .menu button{ color:#aab4cc; }
+  aside.dark .menu button:hover{ background:var(--navy-2); }
+  aside.dark .menu button.active{ background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; }
+  .side-foot{ margin-top:auto; }
+  .user-card{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e6ebf6; border-radius:14px; padding:10px 12px; cursor:pointer; transition:.15s; }
+  .user-card:hover{ box-shadow:var(--shadow); }
+  aside.dark .user-card{ background:var(--navy-2); border-color:#2e3a52; color:#dfe5f2; }
+  .user-card .nm{ font-size:13px; font-weight:700; } .user-card .gp{ font-size:11px; color:var(--muted); }
+  aside.dark .user-card .gp{ color:#7c88a3; }
+
+  .avatar{ border-radius:50%; color:#fff; display:inline-grid; place-items:center; font-weight:700; flex-shrink:0; }
+  .av-36{ width:36px; height:36px; font-size:14px; } .av-30{ width:30px; height:30px; font-size:12px; }
+  .av-24{ width:24px; height:24px; font-size:11px; margin-left:-7px; border:2px solid #fff; }
+  .av-stack{ display:inline-flex; padding-left:7px; vertical-align:middle; }
+
+  main{ flex:1; min-width:0; padding:26px 32px 70px; }
+  .page{ animation:fadeUp .3s ease; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+
+  /* ---------- 通用 ---------- */
+  .pg-head{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+  .pg-head h1{ font-size:23px; font-weight:800; }
+  .pg-head .sub{ font-size:12.5px; color:var(--muted); margin-top:5px; }
+  .pg-head .sp{ flex:1; }
+  .search-box{ display:flex; align-items:center; gap:7px; background:#fff; border:1px solid #e2e8f4; border-radius:11px; padding:9px 13px; width:250px; }
+  .search-box input{ border:none; outline:none; flex:1; font-size:13px; font-family:inherit; background:transparent; }
+  .seg{ display:flex; gap:7px; }
+  .seg button{ border:none; background:#e6ebf6; color:#5a6478; padding:8px 20px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
+  .seg button.active{ background:var(--blue); color:#fff; box-shadow:0 4px 12px rgba(74,125,249,.3); }
+
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card{ background:var(--card); border-radius:15px; padding:17px 20px; display:flex; align-items:center; gap:15px; box-shadow:var(--shadow); }
+  .stat-card .ic{ width:46px; height:46px; border-radius:12px; display:grid; place-items:center; font-size:21px; }
+  .stat-card .lb{ font-size:12px; color:var(--muted); font-weight:600; }
+  .stat-card .vl{ font-size:25px; font-weight:800; line-height:1.25; }
+  .stat-card .vl small{ font-size:12px; color:var(--muted); font-weight:600; }
+  .stat-card .delta{ font-size:11px; margin-top:2px; color:var(--muted); }
+
+  .btn{ border:none; border-radius:11px; padding:10px 22px; font-size:13.5px; font-weight:700; cursor:pointer; transition:.18s; }
+  .btn-blue{ background:linear-gradient(135deg,#5f9dff,#3b6ef6); color:#fff; box-shadow:0 5px 14px rgba(59,110,246,.32); }
+  .btn-blue:hover{ transform:translateY(-1px); }
+  .btn-ghost{ background:#eef2fb; color:#4a5470; }
+  .btn-ghost:hover{ background:#e2e9f8; }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+
+  .empty{ background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:64px 30px; text-align:center; }
+  .empty .e-icon{ font-size:50px; margin-bottom:12px; }
+  .empty p{ font-size:16px; font-weight:700; margin-bottom:6px; }
+  .empty span{ font-size:13px; color:var(--muted); }
+
+  /* ---------- 视频广场卡片 ---------- */
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(272px,1fr)); gap:20px; }
+  .v-card{ background:var(--card); border-radius:16px; overflow:hidden; box-shadow:var(--shadow); transition:.22s; display:flex; flex-direction:column; }
+  .v-card:hover{ transform:translateY(-4px); box-shadow:0 14px 36px rgba(31,60,136,.13); }
+  .thumb{ position:relative; aspect-ratio:16/9.4; background:#101622; cursor:pointer; overflow:hidden; }
+  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb .dur{ position:absolute; right:9px; bottom:9px; background:rgba(8,12,22,.72); color:#fff; font-size:11px; font-weight:600; padding:3px 8px; border-radius:7px; font-variant-numeric:tabular-nums; }
+  .badge-excellent{ position:absolute; left:10px; top:10px; background:var(--orange); color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; box-shadow:0 3px 8px rgba(255,126,54,.4); }
+  .badge-own{ position:absolute; left:10px; top:10px; background:linear-gradient(135deg,#43c878,#2fbf71); color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; }
+  .v-body{ padding:14px 16px 15px; }
+  .v-line1{ display:flex; align-items:center; gap:9px; }
+  .v-title{ font-size:14.5px; font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .v-score{ font-size:21px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums; }
+  .v-score small{ font-size:11px; color:var(--muted); font-weight:600; }
+  .v-score.none{ color:#c3cad9; }
+  .v-members{ font-size:11.5px; color:var(--muted); margin:5px 0 8px; display:flex; align-items:center; gap:6px; }
+  .g-tag{ display:inline-block; background:#eef3fe; color:var(--blue); font-size:10.5px; font-weight:700; padding:2.5px 9px; border-radius:7px; }
+  .v-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+  .stars{ font-size:19px; letter-spacing:2px; color:#FFB61E; line-height:1; }
+  .stars .off{ color:#dde2ec; }
+  .mini-btn{ border:none; border-radius:9px; padding:8px 16px; font-size:12.5px; font-weight:700; cursor:pointer; transition:.15s; }
+  .mini-btn.go{ background:var(--blue); color:#fff; box-shadow:0 4px 10px rgba(74,125,249,.3); }
+  .mini-btn.done{ background:#e8f8ef; color:#22a35c; }
+
+  /* ---------- 上传页 ---------- */
+  .upload-wrap{ display:grid; grid-template-columns:1fr 265px; gap:20px; align-items:start; }
+  @media (max-width:980px){ .upload-wrap{ grid-template-columns:1fr; } }
+  .panel{ background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:24px 26px; }
+  .panel h2{ font-size:16px; font-weight:800; margin-bottom:18px; }
+  .drop-zone{ border:2px dashed #c4d2ef; border-radius:15px; padding:34px 20px 26px; text-align:center; cursor:pointer; transition:.2s; background:#fafcff; margin-bottom:20px; }
+  .drop-zone:hover,.drop-zone.drag{ border-color:var(--blue); background:#f0f6ff; }
+  .drop-zone .dz-icon{ width:56px; height:56px; margin:0 auto 12px; border-radius:50%; border:2.5px solid var(--blue); color:var(--blue); display:grid; place-items:center; font-size:26px; font-weight:300; }
+  .drop-zone p{ font-size:14.5px; font-weight:700; } .drop-zone span{ font-size:12px; color:var(--muted); }
+  .up-progress{ margin-top:18px; background:#f2f5fc; border-radius:12px; padding:13px 16px; text-align:left; }
+  .up-progress .fn{ font-size:13px; font-weight:700; display:flex; justify-content:space-between; }
+  .up-progress .fs{ font-size:11px; color:var(--muted); margin:3px 0 9px; }
+  .bar{ height:7px; border-radius:6px; background:#dde4f2; overflow:hidden; }
+  .bar i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,#7fb0ff,#3b6ef6); border-radius:6px; transition:width .25s; }
+  .cover-row{ display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+  .cover-opt{ width:88px; height:58px; border-radius:10px; border:2.5px solid transparent; overflow:hidden; cursor:pointer; position:relative; background:#e8edf7; }
+  .cover-opt img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cover-opt.sel{ border-color:var(--blue); box-shadow:0 3px 10px rgba(59,110,246,.3); }
+  .cover-opt .ck{ position:absolute; right:4px; top:4px; width:19px; height:19px; border-radius:50%; background:#22c55e; color:#fff; font-size:11px; display:grid; place-items:center; }
+  .f-label{ font-size:12.5px; font-weight:700; color:#3c4454; margin:0 0 7px; }
+  .f-input,.f-area,.f-select{ width:100%; border:1px solid #dbe2f0; border-radius:11px; padding:11px 13px; font-size:13.5px; font-family:inherit; outline:none; background:#fff; transition:.15s; }
+  .f-input:focus,.f-area:focus,.f-select:focus{ border-color:var(--blue); }
+  .f-area{ resize:vertical; min-height:88px; line-height:1.65; }
+  .f-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  @media (max-width:640px){ .f-grid{ grid-template-columns:1fr; } }
+  .f-block{ margin-bottom:16px; }
+  .tag-input{ display:flex; flex-wrap:wrap; gap:8px; border:1px solid #dbe2f0; border-radius:11px; padding:8px 10px; background:#fff; }
+  .tag-input input{ border:none; outline:none; flex:1; min-width:90px; font-size:13px; font-family:inherit; padding:4px; }
+  .tag-chip{ display:inline-flex; align-items:center; gap:6px; background:#eef3fe; color:#3c5bd9; font-size:12.5px; font-weight:600; padding:5px 8px 5px 12px; border-radius:9px; }
+  .tag-chip b{ cursor:pointer; color:#9aa6c8; font-weight:700; } .tag-chip b:hover{ color:#e0533a; }
+  .form-actions{ display:flex; justify-content:flex-end; gap:12px; margin-top:8px; }
+  .ring-card{ text-align:center; }
+  .ring-wrap{ width:128px; height:128px; margin:6px auto 12px; position:relative; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-num{ position:absolute; inset:0; display:grid; place-items:center; font-size:29px; font-weight:800; color:var(--blue); }
+  .pill{ display:inline-block; font-size:11.5px; font-weight:700; padding:4px 14px; border-radius:999px; }
+  .pill.review{ background:#e8f8ef; color:#22a35c; } .pill.none{ background:#f1f3f9; color:#8a93a6; }
+  .kv{ display:flex; justify-content:space-between; font-size:13px; padding:9px 2px; color:#5a6478; }
+  .kv b{ color:var(--ink); } .kv .score{ color:#22a35c; font-size:17px; font-weight:800; }
+  .hint-line{ display:flex; gap:7px; font-size:11.5px; color:var(--muted); background:#f5f7fd; border-radius:10px; padding:9px 11px; margin-top:10px; text-align:left; line-height:1.5; }
+
+  /* ---------- 详情页 ---------- */
+  .detail-wrap{ display:grid; grid-template-columns:1fr 300px; gap:20px; align-items:start; }
+  @media (max-width:1020px){ .detail-wrap{ grid-template-columns:1fr; } }
+  .player-box{ position:relative; background:#0b0f18; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(8,12,22,.3); }
+  .player-box video{ width:100%; display:block; aspect-ratio:16/9; background:#000; }
+  .p-badge{ position:absolute; top:14px; font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:9px; z-index:2; }
+  .p-badge.ex{ left:14px; background:var(--orange); color:#fff; }
+  .p-badge.rk{ right:14px; background:rgba(10,14,24,.72); color:#fff; }
+  .info-panel{ margin-top:18px; }
+  .info-head{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .info-head h2{ font-size:19px; font-weight:800; }
+  .big-score{ font-size:29px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums; }
+  .big-score small{ font-size:12px; color:var(--muted); font-weight:600; }
+  .rate-count{ font-size:12px; color:var(--muted); text-align:center; }
+  .info-actions{ margin-left:auto; display:flex; gap:9px; }
+  .mem-row{ display:flex; align-items:center; gap:9px; margin:13px 0; flex-wrap:wrap; }
+  .mem-row .m-item{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:#5a6478; width:42px; }
+  .desc{ font-size:13.5px; line-height:1.85; color:#454d5e; border-top:1px solid #eef1f7; padding-top:13px; margin-top:4px; }
+
+  .dim-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:13px; }
+  .dim-row .dl{ font-size:13px; font-weight:600; color:#3c4454; }
+  .dstars{ display:flex; gap:4px; }
+  .dstars span{ font-size:22px; color:#dde2ec; cursor:pointer; transition:transform .1s, color .1s; line-height:1; }
+  .dstars span.on{ color:#FFB61E; }
+  .dstars span:hover{ transform:scale(1.15); }
+  .q-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
+  .q-tags button{ border:1px solid #dbe2f0; background:#f7f9fe; color:#5a6478; font-size:11.5px; font-weight:600; padding:6px 13px; border-radius:999px; cursor:pointer; transition:.15s; }
+  .q-tags button:hover{ border-color:var(--blue); color:var(--blue); }
+  .comment-item{ display:flex; gap:11px; padding:14px 2px; border-top:1px solid #f0f3f9; }
+  .comment-item .c-hd{ display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; flex-wrap:wrap; }
+  .comment-item .c-hd .tm{ font-size:11px; color:var(--muted); font-weight:500; }
+  .comment-item .c-stars{ color:#FFB61E; font-size:13px; letter-spacing:1px; }
+  .comment-item .c-tx{ font-size:12.5px; color:#454d5e; line-height:1.7; margin-top:5px; }
+
+  /* ---------- 教师端 ---------- */
+  .board-grid{ display:grid; grid-template-columns:1fr 265px; gap:20px; align-items:start; }
+  @media (max-width:1020px){ .board-grid{ grid-template-columns:1fr; } }
+  table.rank{ width:100%; border-collapse:collapse; }
+  table.rank th{ font-size:11.5px; color:var(--muted); font-weight:700; text-align:left; padding:0 12px 10px; }
+  table.rank td{ padding:11px 12px; font-size:13.5px; border-top:1px solid #f0f3f9; vertical-align:middle; }
+  table.rank tbody tr{ cursor:pointer; transition:background .13s; }
+  table.rank tbody tr:hover{ background:#f5f8ff; }
+  .rk-medal{ font-size:19px; } .rk-num{ display:inline-grid; place-items:center; width:26px; height:26px; border-radius:9px; background:#eef1f7; color:#7a8499; font-size:12.5px; font-weight:700; }
+  .cell-score{ font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .cell-score.s1{ color:#d99a12; } .cell-score.s2{ color:var(--blue); } .cell-score.s3{ color:#e0643a; }
+  .cell-sub{ font-size:11px; color:var(--muted); }
+  .spark{ display:flex; align-items:flex-end; gap:3px; height:26px; }
+  .spark i{ width:6px; border-radius:3px 3px 1px 1px; background:linear-gradient(180deg,#7ee2a8,#34c46e); min-height:4px; }
+  .podium{ text-align:center; padding-top:8px; }
+  .pod-stage{ display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:16px 0 6px; }
+  .pod-item{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .pod-item .crown{ font-size:20px; margin-bottom:-4px; }
+  .pod-box{ border-radius:12px 12px 0 0; display:grid; place-items:center; color:#fff; font-weight:800; width:66px; }
+  .pod-1 .pod-box{ height:58px; background:linear-gradient(180deg,#f6c445,#e9a416); font-size:17px; width:74px; }
+  .pod-2 .pod-box{ height:42px; background:linear-gradient(180deg,#c9cfd6,#a8b0bc); font-size:14px; }
+  .pod-3 .pod-box{ height:34px; background:linear-gradient(180deg,#dfa06f,#cf8851); font-size:13px; }
+  .pod-g{ font-size:12px; font-weight:700; } .pod-s{ font-size:13px; font-weight:800; color:#d99a12; }
+  .best-tag{ font-size:10px; background:#fff5dd; color:#c98a06; font-weight:700; padding:2px 8px; border-radius:7px; }
+  .feat-card{ display:flex; gap:11px; align-items:center; padding:10px 0; border-top:1px solid #f0f3f9; cursor:pointer; }
+  .feat-card:first-of-type{ border-top:none; }
+  .feat-thumb{ position:relative; width:86px; height:56px; border-radius:9px; overflow:hidden; flex-shrink:0; background:#101622; }
+  .feat-thumb img{ width:100%; height:100%; object-fit:cover; }
+  .feat-thumb .fp{ position:absolute; inset:0; display:grid; place-items:center; background:rgba(8,12,22,.25); color:#fff; font-size:16px; }
+  .feat-rec{ position:absolute; left:4px; top:4px; background:var(--orange); color:#fff; font-size:9px; font-weight:700; padding:2px 6px; border-radius:5px; }
+  .feat-card .ft{ font-size:12.5px; font-weight:700; } .feat-card .fv{ font-size:11px; color:var(--muted); margin-top:4px; }
+  .warn-bar{ display:flex; align-items:center; gap:10px; background:#fff8ec; border:1px solid #ffe4b3; border-radius:14px; padding:13px 18px; margin-top:20px; font-size:13px; font-weight:600; color:#a3720a; }
+  .warn-bar .btn{ margin-left:auto; }
+
+  /* ---------- 我的评分 ---------- */
+  .my-rate-item{ display:flex; align-items:center; gap:14px; background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:14px 18px; margin-bottom:12px; cursor:pointer; transition:.15s; }
+  .my-rate-item:hover{ transform:translateY(-2px); }
+
+  /* ---------- 弹窗 / Toast ---------- */
+  .modal-mask{ position:fixed; inset:0; background:rgba(20,26,40,.45); display:grid; place-items:center; z-index:100; backdrop-filter:blur(3px); }
+  .modal{ background:#fff; border-radius:18px; padding:28px 30px; width:360px; max-width:92vw; box-shadow:0 20px 60px rgba(10,16,30,.3); }
+  .modal h3{ font-size:17px; font-weight:800; margin-bottom:6px; }
+  .modal .md-sub{ font-size:12.5px; color:var(--muted); margin-bottom:16px; }
+  .role-pick{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .role-pick button{ border:2px solid #e2e8f4; background:#f8faff; border-radius:14px; padding:16px 10px; cursor:pointer; font-size:14px; font-weight:700; transition:.15s; }
+  .role-pick button.sel{ border-color:var(--blue); background:#eef4ff; color:var(--blue); }
+  #toast{ position:fixed; left:50%; bottom:36px; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
+  .toast-item{ background:rgba(24,30,45,.92); color:#fff; font-size:13px; font-weight:600; padding:11px 22px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); animation:toastIn .25s ease; }
+  @keyframes toastIn{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+/* ================= 基础 ================= */
+const GROUPS = Array.from({length:8},(_,i)=>({id:'g'+(i+1), name:'第'+(i+1)+'组'}));
+const TEACHER_PIN = '123456';
+const DEADLINE = new Date('2026-10-29T23:59:59');
+const SUBJECTS = ['健康常识','运动健康','心理健康','营养饮食','疾病预防','急救知识'];
+const DIMS = [['content','内容完整性'],['creativity','创意表现'],['tech','技术制作'],['team','团队协作'],['expr','表达清晰度']];
+const QUICK_TAGS = ['画面精美','逻辑清晰','配音专业','创意十足'];
+const AV_COLORS = ['#5b8def','#8a63d2','#e0648a','#3aa78d','#e0913a','#4aa3e0','#6b7fd7','#c05a3a'];
+
+let DATA = { works:{}, ratings:{} };
+let ME = JSON.parse(localStorage.getItem('xkj_identity') || 'null');
+let uploading = false;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){
+  const d = document.createElement('div'); d.className='toast-item'; d.textContent = msg;
+  $('#toast').appendChild(d); setTimeout(()=>{ d.style.opacity='0'; d.style.transition='.3s'; setTimeout(()=>d.remove(),320); }, 2400);
+}
+function avColor(name){ let h=0; for(const c of String(name)) h=(h*31+c.charCodeAt(0))>>>0; return AV_COLORS[h%AV_COLORS.length]; }
+function avatar(name, cls='av-30'){ return `<span class="avatar ${cls}" style="background:${avColor(name)}">${esc(String(name||'?').slice(0,1))}</span>`; }
+function fmtDur(s){ s=Math.max(0,Math.round(s||0)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+function fmtTime(t){ const d=new Date(t); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+
+/* 评分计算 */
+const rateAvg = r => (r.dims.content+r.dims.creativity+r.dims.tech+r.dims.team+r.dims.expr)/5; // 1-5
+const rateScore = r => rateAvg(r)*20; // 0-100
+function workRatings(wid){ return Object.entries(DATA.ratings[wid]||{}).map(([rid,r])=>({rid,...r})); }
+function workAvg(wid){ const rs=workRatings(wid); return rs.length ? rs.reduce((a,r)=>a+rateScore(r),0)/rs.length : null; }
+function rankedWorks(){
+  return Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}))
+    .filter(w=>w.avg!=null).sort((a,b)=>b.avg-a.avg);
+}
+function starsHTML(score100, size){ // 静态展示星
+  const full = score100==null ? 0 : Math.round(score100/20);
+  let h=''; for(let i=1;i<=5;i++) h+=`<span class="${i<=full?'':'off'}">★</span>`;
+  return `<span class="stars"${size?` style="font-size:${size}px"`:''}>${h}</span>`;
+}
+
+/* ================= 数据 ================= */
+async function loadData(rerender=true){
+  try{
+    const [w,r] = await Promise.all([fetch('/api/works').then(x=>x.json()), fetch('/api/ratings').then(x=>x.json())]);
+    DATA = {works:w, ratings:r};
+    if(rerender && !uploading && location.hash!=='#/upload' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) renderRoute();
+  }catch(e){}
+}
+async function api(url, body){
+  const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(j.error||'请求失败');
+  return j;
+}
+
+/* ================= 身份 ================= */
+function requireIdentity(){
+  if(ME) return true;
+  openIdentityModal();
+  return false;
+}
+function openIdentityModal(){
+  const old = $('.modal-mask'); if(old) old.remove();
+  const m = document.createElement('div'); m.className='modal-mask';
+  m.innerHTML = `
+    <div class="modal">
+      <h3>欢迎来到星课云·作品互评</h3>
+      <div class="md-sub">AI健康科普视频制作 · 请选择你的身份（本机记忆）</div>
+      <div class="role-pick">
+        <button id="rStudent" class="sel">🎓 我是学生</button>
+        <button id="rTeacher">👩‍🏫 我是教师</button>
+      </div>
+      <div id="stuFields">
+        <div class="f-label">你的姓名</div>
+        <input class="f-input" id="idName" placeholder="如：李思远" style="margin-bottom:12px">
+        <div class="f-label">所属小组</div>
+        <select class="f-select" id="idGroup">${GROUPS.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select>
+      </div>
+      <div id="teaFields" style="display:none">
+        <div class="f-label">教师口令</div>
+        <input class="f-input" id="idPin" type="password" placeholder="请输入教师口令">
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px">
+        <button class="btn btn-blue" id="idOk" style="width:100%">进入平台</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  let role='student';
+  m.querySelector('#rStudent').onclick=()=>{role='student';m.querySelector('#rStudent').classList.add('sel');m.querySelector('#rTeacher').classList.remove('sel');m.querySelector('#stuFields').style.display='';m.querySelector('#teaFields').style.display='none';};
+  m.querySelector('#rTeacher').onclick=()=>{role='teacher';m.querySelector('#rTeacher').classList.add('sel');m.querySelector('#rStudent').classList.remove('sel');m.querySelector('#stuFields').style.display='none';m.querySelector('#teaFields').style.display='';};
+  m.querySelector('#idOk').onclick=()=>{
+    if(role==='student'){
+      const name=m.querySelector('#idName').value.trim(), group=m.querySelector('#idGroup').value;
+      if(!name) return toast('请输入姓名');
+      ME={role:'student',name,group};
+    }else{
+      if(m.querySelector('#idPin').value!==TEACHER_PIN) return toast('教师口令错误');
+      ME={role:'teacher',name:'教师'};
+    }
+    localStorage.setItem('xkj_identity',JSON.stringify(ME));
+    m.remove(); location.hash = ME.role==='teacher' ? '#/teacher' : '#/square';
+    renderApp();
+  };
+}
+
+/* ================= 框架 ================= */
+function renderApp(){
+  if(!ME){ $('#app').innerHTML=''; openIdentityModal(); return; }
+  const dark = ME.role==='teacher';
+  const menus = dark
+    ? [['#/teacher','📊','排名榜',true],['','📋','作品审核',false],['','⭐','评分管理',false],['','👥','班级管理',false],['','📈','数据分析',false],['','⚙️','设置',false]]
+    : [['#/square','🎬','视频广场',true],['#/upload','⬆️','上传作品',true],['#/my','⭐','我的评分',true],['','💬','消息通知',false],['','👤','个人中心',false]];
+  $('#app').innerHTML = `
+    <aside class="${dark?'dark':''}">
+      <div class="brand"><span class="b-icon">${dark?'📊':'☁️'}</span>
+        <div>星课云 · ${dark?'教学看板':'作品互评'}<small>AI健康科普视频制作</small></div>
+      </div>
+      <nav class="menu">
+        ${menus.map(([h,ic,lb,ok])=>`<button data-h="${h}" data-ok="${ok}"><span class="m-ic">${ic}</span>${lb}</button>`).join('')}
+      </nav>
+      <div class="side-foot">
+        <div class="user-card" id="userCard">
+          ${avatar(ME.name,'av-36')}
+          <div><div class="nm">${esc(ME.name)}</div><div class="gp">${dark?'教师端 · 点击切换':(GROUPS.find(g=>g.id===ME.group)?.name||'')+' · 点击切换'}</div></div>
+        </div>
+      </div>
+    </aside>
+    <main id="view"></main>`;
+  document.querySelectorAll('.menu button').forEach(b=>b.onclick=()=>{
+    if(b.dataset.ok==='true') location.hash=b.dataset.h;
+    else toast('功能建设中，敬请期待');
+  });
+  $('#userCard').onclick=()=>{ openIdentityModal(); };
+  renderRoute();
+}
+
+function setActiveMenu(){
+  const h = location.hash || (ME.role==='teacher'?'#/teacher':'#/square');
+  document.querySelectorAll('.menu button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.h && (h===b.dataset.h || (b.dataset.h==='#/square'&&h.startsWith('#/work')) || (b.dataset.h==='#/upload'&&h==='#/upload')));
+  });
+}
+
+function renderRoute(){
+  if(!ME) return;
+  setActiveMenu();
+  const h = location.hash || (ME.role==='teacher'?'#/teacher':'#/square');
+  if(h.startsWith('#/work/')) return renderWork(decodeURIComponent(h.slice(7)));
+  if(h==='#/upload') return ME.role==='student' ? renderUpload() : (location.hash='#/teacher');
+  if(h==='#/teacher') return ME.role==='teacher' ? renderTeacher() : (location.hash='#/square');
+  if(h==='#/my') return ME.role==='student' ? renderMy() : (location.hash='#/teacher');
+  return ME.role==='teacher' ? renderTeacher(true) : renderSquare();
+}
+
+/* ================= 视频广场（学生） ================= */
+let squareTab='all', squareQ='';
+function renderSquare(){
+  const myId = ME.group;
+  const all = Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}));
+  const myRated = wid => !!(DATA.ratings[wid]||{})[myId];
+  let list = all.filter(w=>w.id!==myId);
+  if(squareTab==='unrated') list=list.filter(w=>!myRated(w.id));
+  if(squareTab==='rated') list=list.filter(w=>myRated(w.id));
+  if(squareTab==='all') list=all.slice(); // 全部 tab 含本组作品（带绿色角标）
+  if(squareQ){ const q=squareQ.toLowerCase(); list=list.filter(w=>(w.title+(w.members||[]).join('')+GROUPS.find(g=>g.id===w.id)?.name).toLowerCase().includes(q)); }
+  list.sort((a,b)=>(b.avg??-1)-(a.avg??-1));
+
+  const unrated = all.filter(w=>w.id!==myId && !myRated(w.id)).length;
+  const myWork = DATA.works[myId];
+  const myAvg = myWork ? workAvg(myId) : null;
+  const daysLeft = Math.max(0, Math.ceil((DEADLINE-Date.now())/86400000));
+  const myRateCount = Object.values(DATA.ratings).filter(m=>m[myId]).length;
+
+  $('#view').innerHTML = `<div class="page">
+    <div class="pg-head">
+      <div><h1>视频广场</h1><div class="sub">共 ${all.filter(w=>w.id!==myId).length} 个小组作品${unrated?`，你还有 ${unrated} 个未评分`:'，全部评分已完成 🎉'}</div></div>
+      <div class="sp"></div>
+      <div class="search-box">🔍<input id="sq" placeholder="搜索小组作品" value="${esc(squareQ)}"></div>
+      <div class="seg" id="seg">
+        <button data-t="all" class="${squareTab==='all'?'active':''}">全部</button>
+        <button data-t="unrated" class="${squareTab==='unrated'?'active':''}">未评分</button>
+        <button data-t="rated" class="${squareTab==='rated'?'active':''}">已评分</button>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><span class="ic" style="background:#eef4ff">🎬</span><div><div class="lb">本周作品</div><div class="vl">${all.length}</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#eef9f1">✅</span><div><div class="lb">我已完成评分</div><div class="vl">${myRateCount}</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#fff7e8">🏅</span><div><div class="lb">我的作品均分</div><div class="vl">${myAvg!=null?myAvg.toFixed(1):'--'}</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#f3efff">⏰</span><div><div class="lb">剩余时间</div><div class="vl">${daysLeft}<small> 天</small></div></div></div>
+    </div>
+    ${all.length===0 ? `<div class="empty"><div class="e-icon">🎬</div><p>还没有小组上传作品</p><span>第一个上传的小组将出现在这里，快去上传本组的 AI 健康科普视频吧</span><div style="margin-top:20px"><button class="btn btn-blue" onclick="location.hash='#/upload'">去上传作品</button></div></div>`
+    : list.length===0 ? `<div class="empty"><div class="e-icon">🔍</div><p>没有符合条件的作品</p><span>换个筛选条件或搜索词试试</span></div>`
+    : `<div class="grid">${list.map(w=>{
+        const mine = myRated(w.id);
+        const myR = mine ? (DATA.ratings[w.id]||{})[myId] : null;
+        const gName = GROUPS.find(g=>g.id===w.id)?.name||'';
+        return `<div class="v-card">
+          <div class="thumb" onclick="location.hash='#/work/${w.id}'">
+            ${w.cover?`<img src="/api/file/${w.cover}" alt="">`:`<video src="/api/file/${w.file}" preload="metadata" muted></video>`}
+            ${w.id===myId?'<span class="badge-own">本组作品</span>':(w.avg!=null&&w.avg>=90?'<span class="badge-excellent">优秀作品</span>':'')}
+            <span class="dur">${fmtDur(w.duration)}</span>
+          </div>
+          <div class="v-body">
+            <div class="v-line1">
+              <span class="av-stack">${(w.members&&w.members.length?w.members:[gName]).slice(0,3).map(m=>avatar(m,'av-24')).join('')}</span>
+              <span class="v-title">${esc(w.title)}</span>
+              <span class="v-score ${w.avg==null?'none':''}">${w.avg!=null?w.avg.toFixed(1):'--'}<small> 分</small></span>
+            </div>
+            <div class="v-members">${esc((w.members||[]).join('、')||gName)}</div>
+            <span class="g-tag">${gName}</span>
+            <div class="v-foot">
+              ${starsHTML(myR?rateScore(myR):null)}
+              ${w.id===myId?`<button class="mini-btn go" style="background:#eef2fb;color:#4a5470;box-shadow:none" onclick="location.hash='#/work/${w.id}'">查看本组作品</button>`
+                :mine?`<button class="mini-btn done" onclick="location.hash='#/work/${w.id}'">已评分 ✓ 修改</button>`
+                    :`<button class="mini-btn go" onclick="location.hash='#/work/${w.id}'">去打分</button>`}
+            </div>
+          </div>
+        </div>`;}).join('')}</div>`}
+  </div>`;
+  $('#sq').oninput=e=>{ squareQ=e.target.value; const v=e.target, pos=v.selectionStart; renderSquare(); const n=$('#sq'); n.focus(); n.setSelectionRange(pos,pos); };
+  $('#seg').querySelectorAll('button').forEach(b=>b.onclick=()=>{ squareTab=b.dataset.t; renderSquare(); });
+}
+
+/* ================= 上传作品 ================= */
+let upFile=null, upFrames=[], upCoverIdx=0, upMembers=[], upDuration=0;
+function renderUpload(){
+  const myId = ME.group;
+  const myWork = DATA.works[myId];
+  const received = workRatings(myId).length;
+  const avg = workAvg(myId);
+  const pct = Math.min(100, Math.round(received/7*100));
+  upFile=null; upFrames=[]; upCoverIdx=0; upDuration=0;
+  upMembers = myWork ? [...(myWork.members||[])] : [ME.name];
+  const gName = GROUPS.find(g=>g.id===myId)?.name;
+
+  $('#view').innerHTML = `<div class="page">
+    <div class="pg-head"><div><h1>上传本组作品</h1><div class="sub">AI健康科普视频制作 · 每组提交一份视频成果</div></div></div>
+    <div class="upload-wrap">
+      <div class="panel">
+        <h2>上传本组视频成果</h2>
+        <div class="drop-zone" id="dz">
+          <div class="dz-icon">＋</div>
+          <p>将视频文件拖拽到此处，或点击选择文件</p>
+          <span>支持 MP4/MOV/AVI，最大 2GB</span>
+          <div class="up-progress" id="upProg" style="display:none">
+            <div class="fn"><span id="upName">--</span><span id="upPct">0%</span></div>
+            <div class="fs" id="upSize">--</div>
+            <div class="bar"><i id="upBar"></i></div>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept=".mp4,.mov,.avi,video/mp4,video/quicktime" hidden>
+        <div class="f-block" id="coverBlock" style="display:none">
+          <div class="f-label">选择封面</div>
+          <div class="cover-row" id="coverRow"></div>
+        </div>
+        <div class="f-grid">
+          <div><div class="f-label">作品标题</div><input class="f-input" id="fTitle" placeholder="如：城市水循环的秘密" value="${esc(myWork?myWork.title:'')}"></div>
+          <div><div class="f-label">所属小组</div><select class="f-select" disabled><option>${gName}</option></select></div>
+        </div>
+        <div class="f-block"><div class="f-label">作品简介</div><textarea class="f-area" id="fDesc" placeholder="简要介绍作品内容与创意…">${esc(myWork?myWork.desc:'')}</textarea></div>
+        <div class="f-grid">
+          <div><div class="f-label">组员（回车添加）</div><div class="tag-input" id="memTags"></div></div>
+          <div><div class="f-label">学科分类</div><select class="f-select" id="fSubject">${SUBJECTS.map(s=>`<option ${myWork&&myWork.subject===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" id="btnCancel">取消</button>
+          <button class="btn btn-blue" id="btnSubmit">${myWork?'重新提交（覆盖原作品）':'提交作品'}</button>
+        </div>
+      </div>
+      <div class="panel ring-card">
+        <h2 style="text-align:left">本组提交状态</h2>
+        <div class="ring-wrap">
+          <svg width="128" height="128"><circle cx="64" cy="64" r="54" fill="none" stroke="#e8edf7" stroke-width="11"/>
+          <circle cx="64" cy="64" r="54" fill="none" stroke="url(#gr)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${2*Math.PI*54}" stroke-dashoffset="${2*Math.PI*54*(1-pct/100)}"/>
+          <defs><linearGradient id="gr"><stop offset="0" stop-color="#5f9dff"/><stop offset="1" stop-color="#34c46e"/></linearGradient></defs></svg>
+          <div class="ring-num">${myWork?pct:'0'}</div>
+        </div>
+        <span class="pill ${myWork?'review':'none'}">${myWork?'评审中':'未提交'}</span>
+        <div style="margin-top:14px;text-align:left">
+          <div class="kv">已收到评分 <b>${received} 条</b></div>
+          <div class="kv">当前平均分 <span class="score">${avg!=null?avg.toFixed(1):'--'}</span></div>
+        </div>
+        <div class="hint-line">ℹ️ 提交后不可修改小组信息，重新上传将覆盖原作品，请确认无误</div>
+        ${myWork?`<button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="location.hash='#/work/${myId}'">查看本组作品页</button>`:''}
+      </div>
+    </div>
+  </div>`;
+
+  const dz=$('#dz'), fi=$('#fileInput');
+  dz.onclick=()=>{ if(!uploading) fi.click(); };
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag');};
+  dz.ondragleave=()=>dz.classList.remove('drag');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag'); if(!uploading&&e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]);};
+  fi.onchange=()=>{ if(fi.files[0]) pickFile(fi.files[0]); };
+
+  renderMemTags();
+  $('#btnCancel').onclick=()=>{ upFile=null; renderUpload(); };
+  $('#btnSubmit').onclick=submitWork;
+}
+function renderMemTags(){
+  const box=$('#memTags'); if(!box) return;
+  box.innerHTML = upMembers.map((m,i)=>`<span class="tag-chip">${esc(m)}<b data-i="${i}">×</b></span>`).join('')+`<input id="memInput" placeholder="输入组员姓名">`;
+  box.querySelectorAll('b').forEach(b=>b.onclick=()=>{ upMembers.splice(+b.dataset.i,1); renderMemTags(); });
+  const inp=box.querySelector('#memInput');
+  inp.onkeydown=e=>{ if(e.key==='Enter'&&inp.value.trim()){ upMembers.push(inp.value.trim()); renderMemTags(); $('#memInput').focus(); } };
+  box.onclick=()=>inp.focus();
+}
+async function pickFile(f){
+  const ext=(f.name.split('.').pop()||'').toLowerCase();
+  if(!['mp4','mov','avi'].includes(ext)) return toast('仅支持 MP4 / MOV / AVI 视频');
+  if(f.size>2*1024*1024*1024) return toast('文件超过 2GB 上限');
+  upFile=f;
+  $('#upProg').style.display='block';
+  $('#upName').textContent=f.name; $('#upSize').textContent=(f.size/1024/1024).toFixed(0)+'MB';
+  $('#upPct').textContent='解析中…'; $('#upBar').style.width='0%';
+  try{
+    const {frames,duration}=await extractFrames(f);
+    upFrames=frames; upDuration=duration; upCoverIdx=frames.length>1?1:0;
+    $('#upPct').textContent='待上传';
+    const row=$('#coverRow');
+    row.innerHTML=frames.map((fr,i)=>`<div class="cover-opt ${i===upCoverIdx?'sel':''}" data-i="${i}"><img src="${fr}">${i===upCoverIdx?'<span class="ck">✓</span>':''}</div>`).join('');
+    $('#coverBlock').style.display='block';
+    row.querySelectorAll('.cover-opt').forEach(c=>c.onclick=()=>{
+      upCoverIdx=+c.dataset.i;
+      row.querySelectorAll('.cover-opt').forEach(x=>{x.classList.toggle('sel',+x.dataset.i===upCoverIdx); const ck=x.querySelector('.ck'); if(ck)ck.remove(); if(+x.dataset.i===upCoverIdx)x.insertAdjacentHTML('beforeend','<span class="ck">✓</span>');});
+    });
+  }catch(e){ toast('视频解析失败，请换文件试试'); upFile=null; $('#upProg').style.display='none'; }
+}
+function extractFrames(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const v=document.createElement('video');
+    v.muted=true; v.playsInline=true; v.preload='auto'; v.src=url;
+    const fail=()=>{URL.revokeObjectURL(url);reject(new Error('bad video'));};
+    v.onerror=fail;
+    v.onloadedmetadata=async()=>{
+      try{
+        const dur=v.duration||0, frames=[];
+        for(const p of [0.1,0.35,0.6,0.85]){
+          await new Promise(r=>{ v.onseeked=r; v.currentTime=Math.min(dur-0.05, dur*p); });
+          const c=document.createElement('canvas');
+          c.width=360; c.height=Math.round(360*(v.videoHeight||9)/(v.videoWidth||16))||202;
+          c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+          frames.push(c.toDataURL('image/jpeg',0.82));
+        }
+        URL.revokeObjectURL(url);
+        resolve({frames,duration:dur});
+      }catch(e){ fail(); }
+    };
+  });
+}
+function dataURLtoBlob(d){ const [h,b]=d.split(','); const mime=h.match(/:(.*?);/)[1]; const bin=atob(b); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new Blob([arr],{type:mime}); }
+function submitWork(){
+  if(uploading) return;
+  if(!upFile) return toast('请先选择视频文件');
+  const title=$('#fTitle').value.trim();
+  if(!title) return toast('请填写作品标题');
+  const fd=new FormData();
+  fd.append('groupId',ME.group);
+  fd.append('title',title);
+  fd.append('desc',$('#fDesc').value.trim());
+  fd.append('subject',$('#fSubject').value);
+  fd.append('members',upMembers.join(','));
+  fd.append('duration',upDuration);
+  fd.append('video',upFile);
+  if(upFrames[upCoverIdx]) fd.append('cover',dataURLtoBlob(upFrames[upCoverIdx]),'cover.jpg');
+  uploading=true;
+  const xhr=new XMLHttpRequest();
+  xhr.open('POST','/api/upload');
+  xhr.upload.onprogress=e=>{ if(e.lengthComputable){ const p=Math.round(e.loaded/e.total*100); $('#upBar').style.width=p+'%'; $('#upPct').textContent=p+'%'; } };
+  xhr.onload=()=>{
+    uploading=false;
+    if(xhr.status===200){ toast('✅ 作品提交成功'); upFile=null; loadData(false).then(()=>location.hash='#/square'); }
+    else{ let msg='上传失败'; try{msg=JSON.parse(xhr.responseText).error||msg;}catch(e){} toast('❌ '+msg); $('#upPct').textContent='上传失败'; }
+  };
+  xhr.onerror=()=>{ uploading=false; toast('❌ 网络错误，上传中断'); };
+  $('#btnSubmit').disabled=true; $('#btnSubmit').textContent='上传中…';
+  xhr.send(fd);
+}
+
+/* ================= 作品详情 ================= */
+let dimSel={}, viewCounted=false;
+function renderWork(wid){
+  const w=DATA.works[wid];
+  if(!w){ $('#view').innerHTML=`<div class="page"><div class="empty"><div class="e-icon">🎬</div><p>作品不存在或未上传</p><div style="margin-top:18px"><button class="btn btn-blue" onclick="history.back()">返回</button></div></div></div>`; return; }
+  const ranked=rankedWorks();
+  const rankIdx=ranked.findIndex(x=>x.id===wid);
+  const avg=workAvg(wid), rs=workRatings(wid).sort((a,b)=>b.time-a.time);
+  const gName=GROUPS.find(g=>g.id===wid)?.name||'';
+  const isMine = ME.role==='student' && ME.group===wid;
+  const myR = ME.role==='student' ? (DATA.ratings[wid]||{})[ME.group] : (DATA.ratings[wid]||{})['teacher'];
+  viewCounted=false;
+
+  // 草稿/已有评分初始化（同一作品轮询重渲染时保留已选星级）
+  const draft=JSON.parse(localStorage.getItem('draft_'+wid)||'null');
+  const init = myR || draft;
+  if(dimSel._wid!==wid){ dimSel={_wid:wid}; if(init&&init.dims) Object.assign(dimSel,init.dims); }
+
+  const raterId = ME.role==='teacher'?'teacher':ME.group;
+  const raterName = ME.name;
+
+  $('#view').innerHTML = `<div class="page">
+    <div class="pg-head">
+      <div><h1>作品播放与评分详情</h1><div class="sub">${gName} · ${esc(w.subject||'健康科普')}</div></div>
+      <div class="sp"></div>
+      <button class="btn btn-ghost" onclick="history.back()">← 退回${ME.role==='teacher'?'排名榜':'视频广场'}</button>
+    </div>
+    <div class="detail-wrap">
+      <div>
+        <div class="player-box">
+          ${avg!=null&&avg>=90?'<span class="p-badge ex">优秀作品</span>':''}
+          ${rankIdx>=0?`<span class="p-badge rk">第${rankIdx+1}名</span>`:''}
+          <video id="player" controls preload="metadata" ${w.cover?`poster="/api/file/${w.cover}"`:''} src="/api/file/${w.file}"></video>
+        </div>
+        <div class="panel info-panel">
+          <div class="info-head">
+            <h2>${esc(w.title)}</h2><span class="g-tag">${gName}</span>
+            <div style="text-align:right"><span class="big-score">${avg!=null?avg.toFixed(1):'--'}<small> 分</small></span></div>
+            <div class="rate-count">${starsHTML(avg,16)}<br>${rs.length} 人已评分 · ${w.views||0} 次观看</div>
+            <div class="info-actions">
+              <a class="btn btn-ghost" href="/api/file/${w.file}" download="${esc(w.title)}.mp4" style="text-decoration:none;display:inline-grid;place-items:center">下载</a>
+              ${ME.role==='teacher'?`<button class="btn ${w.featured?'btn-blue':'btn-ghost'}" id="btnFeature">${w.featured?'✓ 已推荐至首页':'推荐至首页'}</button>`:''}
+              <button class="btn btn-ghost" id="btnShare">分享</button>
+            </div>
+          </div>
+          <div class="mem-row">
+            ${(w.members||[]).map(m=>`<span class="m-item">${avatar(m)}${esc(m)}</span>`).join('')}
+          </div>
+          <div class="desc">${esc(w.desc||'本组暂未填写作品简介。')}</div>
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <h2>同学评价 <span style="font-size:12px;color:var(--muted);font-weight:600">${rs.length} 条</span></h2>
+          <div id="commentList">
+            ${rs.length===0?'<div style="font-size:13px;color:var(--muted);padding:8px 0 4px">还没有评价，来抢沙发～</div>':''}
+            ${rs.map(r=>`<div class="comment-item">
+              ${avatar(r.raterName||r.rid)}
+              <div style="flex:1">
+                <div class="c-hd">${esc(r.raterName||r.rid)}<span class="g-tag">${r.rid==='teacher'?'教师':(GROUPS.find(g=>g.id===r.rid)?.name||'')}</span><span class="c-stars">${'★'.repeat(Math.round(rateAvg(r)))}${'☆'.repeat(5-Math.round(rateAvg(r)))}</span><span style="color:#f59e0b;font-weight:800">${rateAvg(r).toFixed(1)}星</span><span class="tm">${fmtTime(r.time)}</span></div>
+                <div class="c-tx">${esc(r.comment||'（未填写评语）')}</div>
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="panel" id="ratePanel">
+          ${isMine
+            ? `<h2>本组作品</h2><div style="font-size:13px;color:var(--muted);line-height:1.8">这是你们组的作品，不能给自己打分哦。<br>已收到 <b style="color:var(--ink)">${rs.length}</b> 条评分，当前平均分 <b style="color:#22a35c;font-size:18px">${avg!=null?avg.toFixed(1):'--'}</b></div>`
+            : `<h2>我要评分</h2>
+            <div style="font-size:12px;color:var(--muted);margin:-8px 0 16px">从五个维度为作品打分${myR?'（你已评分，可修改）':''}</div>
+            ${DIMS.map(([k,lb])=>`<div class="dim-row"><span class="dl">${lb}</span><span class="dstars" data-k="${k}">${[1,2,3,4,5].map(i=>`<span data-v="${i}" class="${(dimSel[k]||0)>=i?'on':''}">★</span>`).join('')}</span></div>`).join('')}
+            <div class="f-label" style="margin-top:4px">评语</div>
+            <textarea class="f-area" id="fComment" placeholder="说说这个作品的亮点与建议…" style="min-height:96px">${esc((draft&&draft.comment)||(myR&&myR.comment)||'')}</textarea>
+            <div class="q-tags">${QUICK_TAGS.map(t=>`<button data-t="${t}">${t}</button>`).join('')}</div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-blue" id="btnRate" style="flex:1">${myR?'修改评分':'提交评分'}</button>
+              <button class="btn btn-ghost" id="btnDraft">保存草稿</button>
+            </div>`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  const player=$('#player');
+  player.addEventListener('play',()=>{
+    if(viewCounted) return; viewCounted=true;
+    api('/api/view',{workId:wid}).then(j=>{ w.views=j.views; }).catch(()=>{});
+  },{once:false});
+
+  $('#btnShare').onclick=async()=>{
+    try{ await navigator.clipboard.writeText(location.href); toast('🔗 链接已复制，分享给同学吧'); }
+    catch(e){ toast('复制失败，请手动复制地址栏链接'); }
+  };
+  const bf=$('#btnFeature');
+  if(bf) bf.onclick=async()=>{
+    try{ const j=await api(`/api/work/${wid}/feature`,{featured:!w.featured}); w.featured=j.featured; toast(j.featured?'✅ 已推荐至首页':'已取消推荐'); renderWork(wid); }
+    catch(e){ toast(e.message); }
+  };
+
+  if(!isMine){
+    document.querySelectorAll('.dstars').forEach(ds=>{
+      ds.querySelectorAll('span').forEach(s=>s.onclick=()=>{
+        const k=ds.dataset.k, v=+s.dataset.v;
+        dimSel[k]=v;
+        ds.querySelectorAll('span').forEach(x=>x.classList.toggle('on',+x.dataset.v<=v));
+      });
+    });
+    document.querySelectorAll('.q-tags button').forEach(b=>b.onclick=()=>{
+      const ta=$('#fComment');
+      ta.value=(ta.value?ta.value.replace(/[。\s]*$/,'，'):'')+b.dataset.t+'。';
+      ta.focus();
+    });
+    $('#btnDraft').onclick=()=>{
+      localStorage.setItem('draft_'+wid,JSON.stringify({dims:dimSel,comment:$('#fComment').value}));
+      toast('💾 草稿已保存到本机');
+    };
+    $('#btnRate').onclick=async()=>{
+      if(!DIMS.every(([k])=>dimSel[k]>=1)) return toast('请完成五个维度的评分');
+      const tags=QUICK_TAGS.filter(t=>$('#fComment').value.includes(t));
+      const {_wid,...dims}=dimSel;
+      try{
+        await api('/api/rate',{workId:wid,raterId,raterName,dims,comment:$('#fComment').value,tags});
+        localStorage.removeItem('draft_'+wid);
+        toast('✅ 评分提交成功');
+        await loadData(false); renderWork(wid);
+      }catch(e){ toast('❌ '+e.message); }
+    };
+  }
+}
+
+/* ================= 我的评分（学生） ================= */
+function renderMy(){
+  const myId=ME.group;
+  const items=[];
+  for(const [wid,map] of Object.entries(DATA.ratings))
+    if(map[myId]&&DATA.works[wid]) items.push({wid,w:DATA.works[wid],r:map[myId]});
+  items.sort((a,b)=>b.r.time-a.r.time);
+  $('#view').innerHTML=`<div class="page">
+    <div class="pg-head"><div><h1>我的评分</h1><div class="sub">我参与互评的 ${items.length} 份作品</div></div></div>
+    ${items.length===0?`<div class="empty"><div class="e-icon">⭐</div><p>还没有评分记录</p><span>去视频广场为其他小组的作品打分吧</span><div style="margin-top:20px"><button class="btn btn-blue" onclick="location.hash='#/square'">去评分</button></div></div>`
+    :items.map(({wid,w,r})=>`<div class="my-rate-item" onclick="location.hash='#/work/${wid}'">
+        ${avatar(GROUPS.find(g=>g.id===wid)?.name||wid,'av-36')}
+        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${esc(w.title)}</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:3px">${GROUPS.find(g=>g.id===wid)?.name||''} · ${fmtTime(r.time)}</div></div>
+        <div style="text-align:right">${starsHTML(rateScore(r),16)}<div style="font-size:11px;color:var(--muted);margin-top:3px">我的评分 ${rateScore(r).toFixed(0)} 分</div></div>
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ================= 教师看板 ================= */
+function renderTeacher(asSquare){
+  const works=Object.entries(DATA.works).map(([id,w])=>({id,...w}));
+  const ranked=rankedWorks();
+  const allAvgs=ranked.map(w=>w.avg);
+  const classAvg=allAvgs.length?allAvgs.reduce((a,b)=>a+b,0)/allAvgs.length:null;
+  const totalRatings=Object.values(DATA.ratings).reduce((a,m)=>a+Object.keys(m).length,0);
+  const completion=works.length?Math.min(100,Math.round(totalRatings/(works.length*7)*100)):0;
+  // 未完成互评的小组：未上传 或 未给其他所有作品评分
+  const incomplete=GROUPS.filter(g=>{
+    if(!DATA.works[g.id]) return true;
+    return works.some(w=>w.id!==g.id&&!(DATA.ratings[w.id]||{})[g.id]);
+  });
+  const top3=ranked.slice(0,3);
+  let feats=works.filter(w=>w.featured&&workAvg(w.id)!=null);
+  if(feats.length===0) feats=ranked.slice(0,2);
+  feats=feats.slice(0,2);
+
+  $('#view').innerHTML=`<div class="page">
+    <div class="pg-head">
+      <div><h1>AI健康科普视频制作 · 小组视频成果排名榜</h1><div class="sub">高二（3）班 · 共 8 个小组</div></div>
+      <div class="sp"></div>
+      <select class="f-select" style="width:130px" id="unitSel"><option>本单元</option><option>第1单元</option><option>第2单元</option><option>第3单元</option></select>
+      <button class="btn btn-blue" id="btnExport">导出榜单</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><span class="ic" style="background:#eef4ff">👥</span><div><div class="lb">参与小组</div><div class="vl">${works.length}<small>/8</small></div><div class="delta">较上期 ↑</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#eef9f1">🎬</span><div><div class="lb">作品总数</div><div class="vl">${works.length}</div><div class="delta">较上期 ↑</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#fff7e8">🏆</span><div><div class="lb">互评完成率</div><div class="vl">${completion}<small>%</small></div><div class="delta">较上期 ↑</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#f3efff">📈</span><div><div class="lb">班级平均分</div><div class="vl">${classAvg!=null?classAvg.toFixed(1):'--'}</div><div class="delta">较上期 ↑</div></div></div>
+    </div>
+    <div class="board-grid">
+      <div class="panel">
+        <div style="display:flex;align-items:center;margin-bottom:14px"><h2 style="margin:0">完整排行榜</h2><span style="flex:1"></span><button class="btn btn-ghost" style="padding:7px 16px;font-size:12px" onclick="location.hash='#/square'">查看作品</button></div>
+        ${ranked.length===0?`<div style="text-align:center;color:var(--muted);font-size:13px;padding:44px 0">📭 尚无作品获得评分<br><span style="font-size:11.5px">作品被其他小组评分后将自动上榜</span></div>`
+        :`<table class="rank">
+          <thead><tr><th style="width:56px">排名</th><th>小组</th><th>作品名称</th><th>平均分</th><th>评分人次</th><th>趋势</th></tr></thead>
+          <tbody>
+          ${ranked.map((w,i)=>{
+            const gName=GROUPS.find(g=>g.id===w.id)?.name||w.id;
+            const rs=workRatings(w.id).sort((a,b)=>a.time-b.time);
+            const spark=rs.map(r=>{const s=rateScore(r);return `<i style="height:${Math.max(4,Math.round(s/100*26))}px;${s<60?'background:#e3e8f2':''}"></i>`;}).join('');
+            const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':null;
+            return `<tr onclick="location.hash='#/work/${w.id}'">
+              <td>${medal?`<span class="rk-medal">${medal}</span>`:`<span class="rk-num">${i+1}</span>`}</td>
+              <td><div style="display:flex;align-items:center;gap:8px">${avatar(gName,'av-30')}<b>${gName}</b></div></td>
+              <td>${esc(w.title)}</td>
+              <td><span class="cell-score ${i===0?'s1':i===1?'s2':i===2?'s3':''}">${w.avg.toFixed(1)}</span></td>
+              <td>${w.rc}人已评<div class="cell-sub">${w.views||0} 次观看</div></td>
+              <td><div class="spark">${spark||'<span class="cell-sub">—</span>'}</div></td>
+            </tr>`;}).join('')}
+          </tbody>
+        </table>`}
+      </div>
+      <div>
+        <div class="panel podium">
+          <h2 style="text-align:left">前三名领奖台</h2>
+          ${top3.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:26px 0">暂无上榜小组</div>`:`
+          <div class="pod-stage">
+            ${top3[1]?`<div class="pod-item pod-2">${avatar(GROUPS.find(g=>g.id===top3[1].id)?.name||'','av-36')}<div class="pod-box">2</div><div class="pod-g">${GROUPS.find(g=>g.id===top3[1].id)?.name||''}</div><div class="pod-s" style="color:#8a93a6">${top3[1].avg.toFixed(1)}</div></div>`:''}
+            ${top3[0]?`<div class="pod-item pod-1"><div class="crown">👑</div>${avatar(GROUPS.find(g=>g.id===top3[0].id)?.name||'','av-36')}<span class="best-tag">本单元最佳</span><div class="pod-box">1</div><div class="pod-g">${GROUPS.find(g=>g.id===top3[0].id)?.name||''}</div><div class="pod-s">${top3[0].avg.toFixed(1)}</div></div>`:''}
+            ${top3[2]?`<div class="pod-item pod-3">${avatar(GROUPS.find(g=>g.id===top3[2].id)?.name||'','av-36')}<div class="pod-box">3</div><div class="pod-g">${GROUPS.find(g=>g.id===top3[2].id)?.name||''}</div><div class="pod-s" style="color:#cf8851">${top3[2].avg.toFixed(1)}</div></div>`:''}
+          </div>`}
+        </div>
+        <div class="panel" style="margin-top:20px">
+          <h2>优秀作品</h2>
+          ${feats.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:14px 0">暂无优秀作品</div>`:feats.map(w=>`
+            <div class="feat-card" onclick="location.hash='#/work/${w.id}'">
+              <div class="feat-thumb">${w.cover?`<img src="/api/file/${w.cover}">`:''}<span class="fp">▶</span><span class="feat-rec">推荐至全校</span></div>
+              <div><div class="ft">${esc(w.title)}</div><div class="fv">${w.views||0} 观看 · ${workAvg(w.id)?.toFixed(1)} 分</div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    ${incomplete.length?`<div class="warn-bar">⚠️ ${incomplete.length} 个小组未完成互评（${incomplete.map(g=>g.name).join('、')}）<button class="btn btn-blue" id="btnRemind">一键提醒</button></div>`:''}
+  </div>`;
+
+  $('#unitSel').onchange=()=>toast('其他单元数据建设中');
+  $('#btnExport').onclick=()=>{
+    if(ranked.length===0) return toast('暂无数据可导出');
+    let csv='﻿排名,小组,作品名称,平均分,评分人次,观看数\n';
+    ranked.forEach((w,i)=>{ csv+=`${i+1},${GROUPS.find(g=>g.id===w.id)?.name||w.id},"${w.title.replace(/"/g,'""')}",${w.avg.toFixed(1)},${w.rc},${w.views||0}\n`; });
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download='AI健康科普视频制作-排名榜.csv'; a.click();
+    toast('📄 榜单已导出');
+  };
+  const br=$('#btnRemind');
+  if(br) br.onclick=()=>toast(`📢 已提醒 ${incomplete.length} 个小组尽快完成互评`);
+}
+
+/* ================= 启动 ================= */
+window.addEventListener('hashchange',renderRoute);
+renderApp();
+loadData();
+setInterval(()=>loadData(),4000);
+</script>
+</body>
+</html>

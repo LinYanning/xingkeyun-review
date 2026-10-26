@@ -1,0 +1,149 @@
+/* 星课云·作品互评 — AI健康科普视频制作 · 后端服务器
+ * 功能：视频/封面真实上传 / 作品列表 / 五维互评 / 观看数 / 推荐 / 文件流播放（支持 Range 拖拽）
+ * 启动：npm start   访问：http://<服务器IP>:8899
+ */
+const express = require('express');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+
+const app = express();
+const PORT = process.env.PORT || 8899;
+const ROOT = __dirname;
+const DATA_DIR = process.env.DATA_DIR || ROOT; // 云端挂载持久磁盘时指向挂载目录
+const UPLOAD_DIR = path.join(DATA_DIR, 'uploads');
+const DATA_FILE = path.join(DATA_DIR, 'data.json');
+
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+
+/* 数据持久化到 data.json：
+ * works:   { 组id: { title, desc, subject, members[], file, cover, duration, views, featured, time } }
+ * ratings: { 作品组id: { 评分者id: { dims:{content,creativity,tech,team,expr}, comment, tags[], time } } }
+ */
+function loadData() {
+  try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
+  catch { return { works: {}, ratings: {} }; }
+}
+function saveData(d) { fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2)); }
+
+/* 上传配置：视频 mp4/mov/avi 最大 2GB；封面 jpg/png */
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: UPLOAD_DIR,
+    filename(req, file, cb) {
+      const ext = (path.extname(file.originalname) || (file.fieldname === 'cover' ? '.jpg' : '.mp4')).toLowerCase();
+      cb(null, `${req.body.groupId}_${file.fieldname}_${Date.now()}${ext}`);
+    }
+  }),
+  limits: { fileSize: 2 * 1024 * 1024 * 1024 },
+  fileFilter(req, file, cb) {
+    const ext = (path.extname(file.originalname) || '').toLowerCase();
+    if (file.fieldname === 'video' && ['.mp4', '.mov', '.avi'].includes(ext)) return cb(null, true);
+    if (file.fieldname === 'cover' && ['.jpg', '.jpeg', '.png'].includes(ext)) return cb(null, true);
+    cb(new Error('文件类型不支持'));
+  }
+});
+
+app.use(express.json());
+app.use(express.static(ROOT)); // 托管 index.html
+
+/* 上传本组作品（视频 + 封面 + 元数据）；重新上传会替换旧文件 */
+app.post('/api/upload', upload.fields([{ name: 'video', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), (req, res) => {
+  const { groupId, title, desc, subject, members, duration } = req.body;
+  const video = req.files && req.files.video && req.files.video[0];
+  const cover = req.files && req.files.cover && req.files.cover[0];
+  if (!groupId || !video) return res.status(400).json({ error: '参数不完整' });
+  const data = loadData();
+  const old = data.works[groupId];
+  if (old) {
+    fs.promises.unlink(path.join(UPLOAD_DIR, old.file)).catch(() => {});
+    if (old.cover) fs.promises.unlink(path.join(UPLOAD_DIR, old.cover)).catch(() => {});
+  }
+  data.works[groupId] = {
+    title: (title || '').trim() || '未命名作品',
+    desc: (desc || '').trim(),
+    subject: (subject || '').trim(),
+    members: (members || '').split(/[,，]/).map(s => s.trim()).filter(Boolean),
+    file: video.filename,
+    cover: cover ? cover.filename : '',
+    duration: Math.round(Number(duration) || 0),
+    views: old ? old.views : 0,
+    featured: old ? old.featured : false,
+    time: Date.now()
+  };
+  saveData(data);
+  res.json({ ok: true });
+});
+
+/* 作品列表 / 评分数据 */
+app.get('/api/works', (req, res) => res.json(loadData().works));
+app.get('/api/ratings', (req, res) => res.json(loadData().ratings));
+
+/* 提交五维评分（同一评分者对同一作品仅保留最新一次） */
+app.post('/api/rate', (req, res) => {
+  const { workId, raterId, raterName, dims, comment, tags } = req.body || {};
+  const keys = ['content', 'creativity', 'tech', 'team', 'expr'];
+  if (!workId || !raterId || !dims || !keys.every(k => dims[k] >= 1 && dims[k] <= 5))
+    return res.status(400).json({ error: '请完成五个维度的评分' });
+  if (workId === raterId)
+    return res.status(400).json({ error: '不能给本组作品评分' });
+  const data = loadData();
+  if (!data.works[workId]) return res.status(404).json({ error: '作品不存在' });
+  if (!data.ratings[workId]) data.ratings[workId] = {};
+  data.ratings[workId][raterId] = {
+    dims, raterName: (raterName || '').trim() || raterId,
+    comment: (comment || '').trim(),
+    tags: Array.isArray(tags) ? tags.slice(0, 8) : [],
+    time: Date.now()
+  };
+  saveData(data);
+  res.json({ ok: true });
+});
+
+/* 观看数 +1 */
+app.post('/api/view', (req, res) => {
+  const { workId } = req.body || {};
+  const data = loadData();
+  if (!data.works[workId]) return res.status(404).json({ error: '作品不存在' });
+  data.works[workId].views = (data.works[workId].views || 0) + 1;
+  saveData(data);
+  res.json({ ok: true, views: data.works[workId].views });
+});
+
+/* 教师推荐/取消推荐至首页 */
+app.post('/api/work/:id/feature', (req, res) => {
+  const data = loadData();
+  const w = data.works[req.params.id];
+  if (!w) return res.status(404).json({ error: '作品不存在' });
+  w.featured = !!(req.body && req.body.featured);
+  saveData(data);
+  res.json({ ok: true, featured: w.featured });
+});
+
+/* 文件服务（res.sendFile 自动支持 Range，可拖动进度条） */
+app.get('/api/file/:name', (req, res) => {
+  const f = path.basename(req.params.name); // 防止目录穿越
+  const p = path.join(UPLOAD_DIR, f);
+  if (!fs.existsSync(p)) return res.status(404).end();
+  res.sendFile(p);
+});
+
+/* 统一错误处理（如超限、类型不符） */
+app.use((err, req, res, next) => {
+  if (err) res.status(400).json({ error: err.message });
+  else next();
+});
+
+app.listen(PORT, () => {
+  const nets = os.networkInterfaces();
+  let lanIp = 'localhost';
+  for (const name of Object.keys(nets))
+    for (const net of nets[name] || [])
+      if (net.family === 'IPv4' && !net.internal) lanIp = net.address;
+  console.log('');
+  console.log('  ✅ 星课云·作品互评（AI健康科普视频制作）已启动');
+  console.log(`  ➜ 本机访问:  http://localhost:${PORT}`);
+  console.log(`  ➜ 局域网访问: http://${lanIp}:${PORT}`);
+  console.log('');
+});

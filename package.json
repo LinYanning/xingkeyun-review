@@ -1,0 +1,13 @@
+{
+  "name": "ai-health-video-review",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI健康科普视频制作 · 小组互评平台（全班联网版）",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^2.0.1"
+  }
+}

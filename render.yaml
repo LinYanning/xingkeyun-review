@@ -1,0 +1,11 @@
+# Render 蓝图：https://render.com 一键部署
+services:
+  - type: web
+    name: xingkeyun-review
+    runtime: docker          # 使用仓库根目录的 Dockerfile 构建
+    plan: starter            # 持久磁盘需 Starter 及以上（free 档不支持磁盘，重启会丢数据）
+    healthCheckPath: /api/works
+    disk:
+      name: xkj-data
+      mountPath: /data       # 与 Dockerfile 的 DATA_DIR 对应，持久保存视频与评分数据
+      sizeGB: 1
