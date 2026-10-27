@@ -307,9 +307,7 @@ function openIdentityModal(){
         <button id="rTeacher">👩‍🏫 我是教师</button>
       </div>
       <div id="stuFields">
-        <div class="f-label">你的姓名</div>
-        <input class="f-input" id="idName" placeholder="如：李思远" style="margin-bottom:12px">
-        <div class="f-label">所属小组</div>
+        <div class="f-label">你代表哪一组？（组长登录即可）</div>
         <select class="f-select" id="idGroup">${GROUPS.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select>
       </div>
       <div id="teaFields" style="display:none">
@@ -324,9 +322,8 @@ function openIdentityModal(){
   m.querySelector('#rTeacher').onclick=()=>{role='teacher';m.querySelector('#rTeacher').classList.add('sel');m.querySelector('#rStudent').classList.remove('sel');m.querySelector('#stuFields').style.display='none';m.querySelector('#teaFields').style.display='';};
   m.querySelector('#idOk').onclick=()=>{
     if(role==='student'){
-      const name=m.querySelector('#idName').value.trim(), group=m.querySelector('#idGroup').value;
-      if(!name) return toast('请输入姓名');
-      ME={role:'student',name,group};
+      const group=m.querySelector('#idGroup').value;
+      ME={role:'student',name:gNameOf(group),group};
     }else{
       if(m.querySelector('#idPin').value!==TEACHER_PIN) return toast('教师口令错误');
       ME={role:'teacher',name:'王老师'};
@@ -555,12 +552,11 @@ function renderRanking(){
 }
 
 /* ================= 学生 · 我的小组（上传/管理） ================= */
-let upFile=null, upFrames=[], upCoverIdx=0, upMembers=[], upDuration=0;
+let upFile=null, upFrames=[], upCoverIdx=0, upDuration=0;
 function renderGroup(){
   const myId=ME.group, gName=gNameOf(myId);
   const myWork=DATA.works[myId];
   upFile=null; upFrames=[]; upCoverIdx=0; upDuration=0;
-  upMembers=myWork?[...(myWork.members||[])]:[ME.name];
 
   $('#view').innerHTML = crumb(`学生端 / <b>我的小组</b>`)+`
     <div class="two-col">
@@ -584,7 +580,6 @@ function renderGroup(){
         </div>
         <div class="f-block"><div class="f-label">作品名称</div><input class="f-input" id="fTitle" placeholder="如：绿色校园行动" value="${esc(myWork?myWork.title:'')}"></div>
         <div class="f-block"><div class="f-label">所属小组</div><input class="f-input" value="${gName}" disabled></div>
-        <div class="f-block"><div class="f-label">组员（回车添加）</div><div class="tag-input" id="memTags"></div></div>
         <button class="btn btn-blue" id="btnSubmit" style="width:170px">${myWork?'保存并重新发布':'保存并发布视频'}</button>
       </div>
       <div>
@@ -619,7 +614,6 @@ function renderGroup(){
   dz.ondragleave=()=>dz.classList.remove('drag');
   dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag'); if(!uploading&&e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]);};
   fi.onchange=()=>{ if(fi.files[0]) pickFile(fi.files[0]); };
-  renderMemTags();
   $('#btnSubmit').onclick=submitWork;
 }
 async function delMyWork(){
@@ -630,14 +624,6 @@ async function delMyWork(){
     toast('🗑️ 本组视频已删除');
     await loadData(false); renderGroup();
   }catch(e){ toast('删除失败，请重试'); }
-}
-function renderMemTags(){
-  const box=$('#memTags'); if(!box) return;
-  box.innerHTML = upMembers.map((m,i)=>`<span class="tag-chip">${esc(m)}<b data-i="${i}">×</b></span>`).join('')+`<input id="memInput" placeholder="输入组员姓名">`;
-  box.querySelectorAll('b').forEach(b=>b.onclick=()=>{ upMembers.splice(+b.dataset.i,1); renderMemTags(); });
-  const inp=box.querySelector('#memInput');
-  inp.onkeydown=e=>{ if(e.key==='Enter'&&inp.value.trim()){ upMembers.push(inp.value.trim()); renderMemTags(); $('#memInput').focus(); } };
-  box.onclick=()=>inp.focus();
 }
 async function pickFile(f){
   const ext=(f.name.split('.').pop()||'').toLowerCase();
@@ -694,7 +680,6 @@ function submitWork(){
   const fd=new FormData();
   fd.append('groupId',ME.group);
   fd.append('title',title);
-  fd.append('members',upMembers.join(','));
   fd.append('duration',upDuration);
   fd.append('video',upFile);
   if(upFrames[upCoverIdx]) fd.append('cover',dataURLtoBlob(upFrames[upCoverIdx]),'cover.jpg');
@@ -740,9 +725,6 @@ function renderWork(wid){
         <div class="card" style="margin-top:16px">
           <h3 style="font-size:16px">${esc(w.title)}${rankIdx>=0?` <span class="g-tag">第${rankIdx+1}名</span>`:''}${avg!=null&&avg>=90?' <span class="badge-ex" style="position:static">优秀作品</span>':''}</h3>
           <div style="font-size:11.5px;color:var(--muted);margin:6px 0 12px">${gName} · 上传于 ${fmtTime(w.time)} &nbsp;·&nbsp; 时长 ${fmtDur(w.duration)} &nbsp;·&nbsp; 已有 ${w.views||0} 人观看</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-            ${(w.members||[]).map(m=>`<span class="mem-chips" style="margin:0"><span>${esc(m)}</span></span>`).join('')}
-          </div>
           <div style="display:flex;gap:10px;margin-top:14px">
             <a class="btn btn-ghost btn-sm" href="/api/file/${w.file}" download="${esc(w.title)}.mp4" style="text-decoration:none">下载视频</a>
             <button class="btn btn-ghost btn-sm" id="btnShare">分享链接</button>
@@ -926,18 +908,16 @@ function renderTHome(){
     <div class="card" style="margin-top:18px">
       <h3>提交进度 <span style="font-size:11px;color:var(--muted);font-weight:600">${GROUPS.length} 个小组的当前状态</span></h3>
       <table class="rank" style="margin-top:8px">
-        <thead><tr><th>小组</th><th>组长</th><th>作品名称</th><th>提交状态</th><th>互评进度</th><th>当前排名</th></tr></thead>
+        <thead><tr><th>小组</th><th>作品名称</th><th>提交状态</th><th>互评进度</th><th>当前排名</th></tr></thead>
         <tbody>
         ${GROUPS.map(g=>{
           const w=DATA.works[g.id];
-          const leader=w&&w.members&&w.members[0]?w.members[0]:'—';
           const need=works.filter(x=>x.id!==g.id).length;
           const done=works.filter(x=>x.id!==g.id&&(DATA.ratings[x.id]||{})[g.id]).length;
           const pct=need?Math.round(done/need*100):(w?100:0);
           const rIdx=ranked.findIndex(x=>x.id===g.id);
           return `<tr ${w?`onclick="location.hash='#/work/${g.id}'"`:''}>
             <td><b>${g.name}</b></td>
-            <td>${esc(leader)}</td>
             <td>${w?esc(w.title):'—'}</td>
             <td>${w?'<span class="g-tag green">已提交</span>':'<span class="g-tag" style="color:#b57708;background:#fdf3e0">未提交</span>'}</td>
             <td>${w?pct+'%':'0%'}</td>
@@ -1010,11 +990,9 @@ function renderTGroups(){
     <div class="g-grid">
       ${GROUPS.map((g,i)=>{
         const w=DATA.works[g.id];
-        const members=w?(w.members||[]):[];
         return `<div class="g-card">
-          <div style="display:flex;align-items:baseline;gap:10px"><span class="num">${String(i+1).padStart(2,'0')}</span><div><div class="gname">${g.name}</div><div class="leader">组长：${members[0]?esc(members[0]):'—'}</div></div></div>
+          <div style="display:flex;align-items:baseline;gap:10px"><span class="num">${String(i+1).padStart(2,'0')}</span><div><div class="gname">${g.name}</div></div></div>
           <div class="wtitle">${w?esc(w.title):'暂未提交视频'}</div>
-          <div class="mem-chips">${members.length?members.map(m=>`<span>${esc(m)}</span>`).join(''):'<span>暂无成员信息</span>'}</div>
           <div class="g-foot">
             ${w?'<span class="st-ok">已提交</span>':'<span class="st-no">未提交</span>'}
             ${w?`<a class="link" onclick="location.hash='#/work/${g.id}'">查看小组 →</a>`:`<a class="link" onclick="toast('📢 已提醒 ${g.name} 尽快提交')">提醒提交</a>`}
