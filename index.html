@@ -3,246 +3,229 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>星课云·作品互评 — AI健康科普视频制作</title>
+<title>课堂影像互评平台 — AI健康科普视频制作</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
   :root{
-    --blue:#3d5af1; --blue-d:#2e46c9; --ink:#20242e; --muted:#8a93a6;
-    --bg:#eef1f8; --card:#fff; --side:#ffffff; --navy:#1e2a4a; --navy-2:#28355a;
-    --gold:#F6C445; --orange:linear-gradient(135deg,#ffb53b,#ff7e36);
-    --shadow:0 6px 24px rgba(31,60,136,.07);
+    --blue:#4a6cf7; --blue-d:#3d5af1; --blue-l:#eef2ff;
+    --green:#1fa97a; --ink:#1f2430; --muted:#8a93a6; --line:#edf0f7;
+    --bg:#f4f6fb; --card:#fff;
+    --shadow:0 2px 10px rgba(30,45,90,.05);
+    --shadow2:0 6px 20px rgba(30,45,90,.09);
   }
-  body{ font-family:'Inter','Noto Sans SC','PingFang SC',sans-serif; background:var(--bg); color:var(--ink); }
+  body{ font-family:'Inter','Noto Sans SC','PingFang SC',sans-serif; background:var(--bg); color:var(--ink); font-size:14px; }
   button{ font-family:inherit; }
-  ::-webkit-scrollbar{ width:8px; height:8px; } ::-webkit-scrollbar-thumb{ background:#cdd5e6; border-radius:8px; }
+  #app{ min-height:100vh; display:flex; flex-direction:column; }
 
-  #app{ display:flex; min-height:100vh; }
+  /* ---------- 顶栏 ---------- */
+  header{ background:#fff; border-bottom:1px solid var(--line); position:sticky; top:0; z-index:50; }
+  .hd{ max-width:1280px; margin:0 auto; height:60px; display:flex; align-items:center; gap:26px; padding:0 24px; }
+  .logo{ display:flex; align-items:center; gap:9px; font-weight:800; font-size:16px; white-space:nowrap; }
+  .logo .lg-ic{ width:30px; height:30px; border-radius:9px; background:linear-gradient(135deg,#5b8cff,#3d5af1); display:grid; place-items:center; color:#fff; }
+  .logo small{ display:block; font-size:10px; color:var(--muted); font-weight:500; }
+  nav.top{ display:flex; gap:4px; height:60px; }
+  nav.top button{ border:none; background:none; padding:0 16px; font-size:14px; font-weight:600; color:#5a6478; cursor:pointer; position:relative; }
+  nav.top button:hover{ color:var(--blue); }
+  nav.top button.active{ color:var(--blue); }
+  nav.top button.active::after{ content:''; position:absolute; left:14px; right:14px; bottom:0; height:3px; border-radius:3px 3px 0 0; background:var(--blue); }
+  .hd-right{ margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .role-chip{ font-size:11.5px; font-weight:700; padding:4px 12px; border-radius:999px; background:var(--blue-l); color:var(--blue); }
+  .role-chip.t{ background:#e6f7f0; color:var(--green); }
+  .u-box{ display:flex; align-items:center; gap:9px; cursor:pointer; padding:5px 8px; border-radius:12px; }
+  .u-box:hover{ background:#f4f6fb; }
+  .u-box .nm{ font-size:13px; font-weight:700; }
+  .u-box .gp{ font-size:10.5px; color:var(--muted); }
 
-  /* ---------- 侧栏 ---------- */
-  aside{ width:208px; flex-shrink:0; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; padding:22px 14px 16px; background:var(--side); border-right:1px solid #e6ebf6; }
-  aside.dark{ background:var(--navy); border-right:none; color:#c6cede; }
-  .brand{ display:flex; align-items:center; gap:9px; padding:0 8px 20px; font-weight:800; font-size:15.5px; }
-  .brand-block{ display:flex; align-items:center; gap:9px; background:linear-gradient(135deg,#5b8cff,#3d5af1); color:#fff; border-radius:14px; padding:12px 11px; margin-bottom:18px; box-shadow:0 6px 16px rgba(61,90,241,.28); }
-  .brand-block .bb-ic{ width:31px; height:31px; border-radius:9px; background:rgba(255,255,255,.2); display:grid; place-items:center; flex-shrink:0; }
-  .brand-block .bb-ic svg{ width:16px; height:16px; }
-  .brand-block b{ font-size:12.8px; display:block; white-space:nowrap; }
-  .brand-block small{ font-size:9.5px; opacity:.85; font-weight:500; display:block; margin-top:2px; white-space:nowrap; }
-  .brand .b-icon{ width:34px; height:34px; border-radius:10px; display:grid; place-items:center; font-size:17px;
-    background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; box-shadow:0 4px 12px rgba(61,90,241,.35); }
-  .brand small{ display:block; font-size:10.5px; color:var(--muted); font-weight:500; }
-  aside.dark .brand small{ color:#7c88a3; }
-  .menu{ display:flex; flex-direction:column; gap:4px; }
-  .menu button{
-    display:flex; align-items:center; gap:10px; border:none; background:transparent; text-align:left;
-    padding:11px 14px; border-radius:11px; font-size:13.5px; font-weight:600; color:#5a6478; cursor:pointer; transition:.15s;
-  }
-  .menu button .m-ic{ width:20px; display:grid; place-items:center; }
-  .menu button .m-ic svg{ display:block; }
-  .menu button:hover{ background:#f0f4fd; }
-  .menu button.active{ background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; box-shadow:0 5px 14px rgba(61,90,241,.32); }
-  aside.dark .menu button{ color:#aab4cc; }
-  aside.dark .menu button:hover{ background:var(--navy-2); }
-  aside.dark .menu button.active{ background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; }
-  .side-foot{ margin-top:auto; }
-  .user-card{ display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e6ebf6; border-radius:14px; padding:10px 12px; cursor:pointer; transition:.15s; }
-  .user-card:hover{ box-shadow:var(--shadow); }
-  aside.dark .user-card{ background:var(--navy-2); border-color:#2e3a52; color:#dfe5f2; }
-  .user-card .nm{ font-size:13px; font-weight:700; } .user-card .gp{ font-size:11px; color:var(--muted); }
-  aside.dark .user-card .gp{ color:#7c88a3; }
-
-  .avatar{ border-radius:50%; color:#fff; display:inline-grid; place-items:center; font-weight:700; flex-shrink:0; }
-  .av-36{ width:36px; height:36px; font-size:14px; } .av-30{ width:30px; height:30px; font-size:12px; }
-  .av-24{ width:24px; height:24px; font-size:11px; margin-left:-7px; border:2px solid #fff; }
-  .av-stack{ display:inline-flex; padding-left:7px; vertical-align:middle; }
-
-  main{ flex:1; min-width:0; padding:26px 32px 70px; }
-  .page{ animation:fadeUp .3s ease; }
-  @keyframes fadeUp{ from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+  main{ max-width:1280px; margin:0 auto; padding:22px 24px 60px; width:100%; }
+  .crumb{ font-size:12px; color:var(--muted); margin-bottom:14px; }
+  .crumb b{ color:#5a6478; font-weight:600; }
+  .foot{ text-align:center; color:#a8b0c2; font-size:11.5px; padding:26px 0 8px; }
 
   /* ---------- 通用 ---------- */
-  .pg-head{ display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
-  .pg-head h1{ font-size:23px; font-weight:800; }
-  .pg-head .sub{ font-size:12.5px; color:var(--muted); margin-top:5px; }
-  .pg-head .sp{ flex:1; }
-  .search-box{ display:flex; align-items:center; gap:7px; background:#fff; border:1px solid #e2e8f4; border-radius:11px; padding:9px 13px; width:250px; }
-  .search-box input{ border:none; outline:none; flex:1; font-size:13px; font-family:inherit; background:transparent; }
-  .seg{ display:flex; gap:7px; }
-  .seg button{ border:none; background:#e6ebf6; color:#5a6478; padding:8px 20px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
-  .seg button.active{ background:var(--blue); color:#fff; box-shadow:0 4px 12px rgba(61,90,241,.3); }
-
-  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
-  .stat-card{ background:var(--card); border-radius:15px; padding:17px 20px; display:flex; align-items:center; gap:15px; box-shadow:var(--shadow); }
-  .stat-card .ic{ width:46px; height:46px; border-radius:12px; display:grid; place-items:center; font-size:21px; }
-  .stat-card .lb{ font-size:12px; color:var(--muted); font-weight:600; }
-  .stat-card .vl{ font-size:25px; font-weight:800; line-height:1.25; }
-  .stat-card .vl small{ font-size:12px; color:var(--muted); font-weight:600; }
-  .stat-card .delta{ font-size:11px; margin-top:2px; color:var(--muted); }
-
-  .btn{ border:none; border-radius:11px; padding:10px 22px; font-size:13.5px; font-weight:700; cursor:pointer; transition:.18s; }
-  .btn-blue{ background:linear-gradient(135deg,#6b8cff,#3d5af1); color:#fff; box-shadow:0 5px 14px rgba(61,90,241,.32); }
+  .card{ background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:20px 22px; }
+  .card h3{ font-size:15px; font-weight:800; margin-bottom:4px; }
+  .card .sub{ font-size:11.5px; color:var(--muted); margin-bottom:14px; }
+  .btn{ border:none; border-radius:10px; padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; transition:.15s; }
+  .btn-blue{ background:linear-gradient(135deg,#5b8cff,#3d5af1); color:#fff; box-shadow:0 4px 14px rgba(61,90,241,.3); }
   .btn-blue:hover{ transform:translateY(-1px); }
-  .btn-ghost{ background:#eef2fb; color:#4a5470; }
-  .btn-ghost:hover{ background:#e2e9f8; }
-  .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+  .btn-ghost{ background:#fff; border:1px solid #e2e8f4; color:#4a5470; }
+  .btn-ghost:hover{ border-color:var(--blue); color:var(--blue); }
+  .btn-red{ background:#fff0f0; color:#e5484d; }
+  .btn-red:hover{ background:#ffe4e4; }
+  .btn-sm{ padding:6px 14px; font-size:12px; border-radius:8px; }
+  .f-input,.f-select,.f-area{ width:100%; padding:10px 13px; border:1px solid #dde3f0; border-radius:10px; font-size:13px; font-family:inherit; background:#fff; outline:none; }
+  .f-input:focus,.f-area:focus{ border-color:var(--blue); }
+  .f-label{ font-size:12.5px; font-weight:700; margin-bottom:7px; color:#3a4358; }
+  .avatar{ border-radius:50%; display:inline-grid; place-items:center; color:#fff; font-weight:700; flex-shrink:0; }
+  .av-24{ width:24px; height:24px; font-size:10.5px; } .av-30{ width:30px; height:30px; font-size:12px; }
+  .av-36{ width:36px; height:36px; font-size:14px; } .av-44{ width:44px; height:44px; font-size:17px; }
+  .av-stack{ display:inline-flex; } .av-stack .avatar{ margin-left:-7px; border:2px solid #fff; } .av-stack .avatar:first-child{ margin-left:0; }
+  .empty{ text-align:center; padding:60px 20px; color:var(--muted); }
+  .empty .e-icon{ font-size:44px; margin-bottom:10px; }
+  .empty p{ font-size:15px; font-weight:700; color:#4a5470; margin-bottom:4px; }
+  .empty span{ font-size:12.5px; }
+  .g-tag{ display:inline-block; font-size:10.5px; font-weight:700; color:var(--blue); background:var(--blue-l); border-radius:6px; padding:2px 8px; }
+  .g-tag.green{ color:var(--green); background:#e6f7f0; }
+  .stars{ color:#ffb61e; letter-spacing:2px; } .stars .off{ color:#e3e8f2; }
+  .link{ color:var(--blue); font-size:12.5px; font-weight:600; cursor:pointer; text-decoration:none; }
+  .link:hover{ text-decoration:underline; }
 
-  .empty{ background:var(--card); border-radius:20px; box-shadow:var(--shadow); padding:64px 30px; text-align:center; }
-  .empty .e-icon{ font-size:50px; margin-bottom:12px; }
-  .empty p{ font-size:16px; font-weight:700; margin-bottom:6px; }
-  .empty span{ font-size:13px; color:var(--muted); }
+  /* ---------- 欢迎横幅 ---------- */
+  .banner{ border-radius:18px; padding:30px 34px; color:#fff; position:relative; overflow:hidden; margin-bottom:20px; }
+  .banner.blue{ background:linear-gradient(115deg,#4a6cf7 0%,#3d5af1 55%,#3550d8 100%); }
+  .banner.green{ background:linear-gradient(115deg,#1fa97a 0%,#17a06e 55%,#0f8f60 100%); }
+  .banner::after{ content:''; position:absolute; right:-60px; top:-80px; width:280px; height:280px; border-radius:50%; background:rgba(255,255,255,.08); }
+  .banner::before{ content:''; position:absolute; right:120px; bottom:-120px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.06); }
+  .banner h2{ font-size:21px; font-weight:800; margin-bottom:6px; }
+  .banner p{ font-size:12.5px; opacity:.88; margin-bottom:14px; }
+  .banner .tags{ display:flex; gap:8px; }
+  .banner .tags span{ font-size:11px; font-weight:600; background:rgba(255,255,255,.18); border-radius:999px; padding:5px 12px; }
+  .banner .bn-btn{ position:absolute; right:30px; top:50%; transform:translateY(-50%); background:#fff; color:var(--blue-d); border:none; border-radius:12px; padding:11px 22px; font-size:13px; font-weight:800; cursor:pointer; z-index:1; }
+  .banner.green .bn-btn{ color:var(--green); }
 
-  /* ---------- 视频广场卡片 ---------- */
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(272px,1fr)); gap:20px; }
-  .v-card{ background:var(--card); border-radius:16px; overflow:hidden; box-shadow:var(--shadow); transition:.22s; display:flex; flex-direction:column; }
-  .v-card:hover{ transform:translateY(-4px); box-shadow:0 14px 36px rgba(31,60,136,.13); }
-  .thumb{ position:relative; aspect-ratio:16/9.4; background:#101622; cursor:pointer; overflow:hidden; }
-  .thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .thumb .dur{ position:absolute; right:9px; bottom:9px; background:rgba(8,12,22,.72); color:#fff; font-size:11px; font-weight:600; padding:3px 8px; border-radius:7px; font-variant-numeric:tabular-nums; }
-  .badge-excellent{ position:absolute; left:10px; top:10px; background:var(--orange); color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; box-shadow:0 3px 8px rgba(255,126,54,.4); }
-  .badge-own{ position:absolute; left:10px; top:10px; background:linear-gradient(135deg,#43c878,#2fbf71); color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; }
-  .v-body{ padding:14px 16px 15px; }
-  .v-line1{ display:flex; align-items:center; gap:9px; }
-  .v-title{ font-size:14.5px; font-weight:700; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .v-score{ font-size:21px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums; }
-  .v-score small{ font-size:11px; color:var(--muted); font-weight:600; }
-  .v-score.none{ color:#c3cad9; }
-  .v-members{ font-size:11.5px; color:var(--muted); margin:5px 0 8px; display:flex; align-items:center; gap:6px; }
-  .g-tag{ display:inline-block; background:#eef3fe; color:var(--blue); font-size:10.5px; font-weight:700; padding:2.5px 9px; border-radius:7px; }
-  .v-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
-  .stars{ font-size:19px; letter-spacing:2px; color:#FFB61E; line-height:1; }
-  .stars .off{ color:#dde2ec; }
-  .mini-btn{ border:none; border-radius:9px; padding:8px 16px; font-size:12.5px; font-weight:700; cursor:pointer; transition:.15s; }
-  .mini-btn.go{ background:var(--blue); color:#fff; box-shadow:0 4px 10px rgba(61,90,241,.3); }
-  .mini-btn.done{ background:#e8f8ef; color:#22a35c; }
+  /* ---------- 统计卡 ---------- */
+  .stat-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .stat-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 18px; display:flex; align-items:center; gap:12px; }
+  .stat-card .ic{ width:40px; height:40px; border-radius:11px; display:grid; place-items:center; flex-shrink:0; }
+  .stat-card .lb{ font-size:11.5px; color:var(--muted); font-weight:600; }
+  .stat-card .vl{ font-size:20px; font-weight:800; margin-top:2px; }
+  .stat-card .vl small{ font-size:11px; color:var(--muted); font-weight:600; }
+  .stat-card .ex{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .stat-card .ex .up{ color:#22a35c; } .stat-card .ex .down{ color:#e5484d; }
 
-  /* ---------- 上传页 ---------- */
-  .upload-wrap{ display:grid; grid-template-columns:1fr 265px; gap:20px; align-items:start; }
-  @media (max-width:980px){ .upload-wrap{ grid-template-columns:1fr; } }
-  .panel{ background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:24px 26px; }
-  .panel h2{ font-size:16px; font-weight:800; margin-bottom:18px; }
-  .drop-zone{ border:2px dashed #c4d2ef; border-radius:15px; padding:34px 20px 26px; text-align:center; cursor:pointer; transition:.2s; background:#fafcff; margin-bottom:20px; }
-  .drop-zone:hover,.drop-zone.drag{ border-color:var(--blue); background:#f0f6ff; }
-  .drop-zone .dz-icon{ width:56px; height:56px; margin:0 auto 12px; border-radius:50%; border:2.5px solid var(--blue); color:var(--blue); display:grid; place-items:center; font-size:26px; font-weight:300; }
-  .drop-zone p{ font-size:14.5px; font-weight:700; } .drop-zone span{ font-size:12px; color:var(--muted); }
-  .up-progress{ margin-top:18px; background:#f2f5fc; border-radius:12px; padding:13px 16px; text-align:left; }
-  .up-progress .fn{ font-size:13px; font-weight:700; display:flex; justify-content:space-between; }
-  .up-progress .fs{ font-size:11px; color:var(--muted); margin:3px 0 9px; }
-  .bar{ height:7px; border-radius:6px; background:#dde4f2; overflow:hidden; }
-  .bar i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,#7fb0ff,#3b6ef6); border-radius:6px; transition:width .25s; }
-  .cover-row{ display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
-  .cover-opt{ width:88px; height:58px; border-radius:10px; border:2.5px solid transparent; overflow:hidden; cursor:pointer; position:relative; background:#e8edf7; }
-  .cover-opt img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .cover-opt.sel{ border-color:var(--blue); box-shadow:0 3px 10px rgba(61,90,241,.3); }
-  .cover-opt .ck{ position:absolute; right:4px; top:4px; width:19px; height:19px; border-radius:50%; background:#22c55e; color:#fff; font-size:11px; display:grid; place-items:center; }
-  .f-label{ font-size:12.5px; font-weight:700; color:#3c4454; margin:0 0 7px; }
-  .f-input,.f-area,.f-select{ width:100%; border:1px solid #dbe2f0; border-radius:11px; padding:11px 13px; font-size:13.5px; font-family:inherit; outline:none; background:#fff; transition:.15s; }
-  .f-input:focus,.f-area:focus,.f-select:focus{ border-color:var(--blue); }
-  .f-area{ resize:vertical; min-height:88px; line-height:1.65; }
-  .f-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
-  @media (max-width:640px){ .f-grid{ grid-template-columns:1fr; } }
-  .f-block{ margin-bottom:16px; }
-  .tag-input{ display:flex; flex-wrap:wrap; gap:8px; border:1px solid #dbe2f0; border-radius:11px; padding:8px 10px; background:#fff; }
-  .tag-input input{ border:none; outline:none; flex:1; min-width:90px; font-size:13px; font-family:inherit; padding:4px; }
-  .tag-chip{ display:inline-flex; align-items:center; gap:6px; background:#eef3fe; color:#3c5bd9; font-size:12.5px; font-weight:600; padding:5px 8px 5px 12px; border-radius:9px; }
-  .tag-chip b{ cursor:pointer; color:#9aa6c8; font-weight:700; } .tag-chip b:hover{ color:#e0533a; }
-  .form-actions{ display:flex; justify-content:flex-end; gap:12px; margin-top:8px; }
-  .ring-card{ text-align:center; }
-  .ring-wrap{ width:128px; height:128px; margin:6px auto 12px; position:relative; }
-  .ring-wrap svg{ transform:rotate(-90deg); }
-  .ring-num{ position:absolute; inset:0; display:grid; place-items:center; font-size:29px; font-weight:800; color:var(--blue); }
-  .pill{ display:inline-block; font-size:11.5px; font-weight:700; padding:4px 14px; border-radius:999px; }
-  .pill.review{ background:#e8f8ef; color:#22a35c; } .pill.none{ background:#f1f3f9; color:#8a93a6; }
-  .kv{ display:flex; justify-content:space-between; font-size:13px; padding:9px 2px; color:#5a6478; }
-  .kv b{ color:var(--ink); } .kv .score{ color:#22a35c; font-size:17px; font-weight:800; }
-  .hint-line{ display:flex; gap:7px; font-size:11.5px; color:var(--muted); background:#f5f7fd; border-radius:10px; padding:9px 11px; margin-top:10px; text-align:left; line-height:1.5; }
+  /* ---------- 视频卡 ---------- */
+  .v-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .v-grid.c3{ grid-template-columns:repeat(3,1fr); }
+  .v-card{ background:var(--card); border-radius:14px; overflow:hidden; box-shadow:var(--shadow); transition:.18s; }
+  .v-card:hover{ transform:translateY(-3px); box-shadow:var(--shadow2); }
+  .thumb{ position:relative; aspect-ratio:16/9; background:linear-gradient(135deg,#2b3a55,#1b2334); cursor:pointer; overflow:hidden; }
+  .thumb img,.thumb video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .thumb .play-ov{ position:absolute; inset:0; display:grid; place-items:center; }
+  .play-c{ width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.92); display:grid; place-items:center; box-shadow:0 4px 14px rgba(0,0,0,.25); transition:.15s; }
+  .thumb:hover .play-c{ transform:scale(1.08); }
+  .play-c::after{ content:''; border-left:14px solid #3d5af1; border-top:9px solid transparent; border-bottom:9px solid transparent; margin-left:3px; }
+  .score-pill{ position:absolute; right:10px; bottom:10px; background:rgba(15,20,35,.72); color:#ffd45e; font-size:11px; font-weight:800; padding:3px 9px; border-radius:999px; }
+  .badge-ex{ position:absolute; left:10px; top:10px; background:linear-gradient(135deg,#ffb020,#ff8a3d); color:#fff; font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px; }
+  .badge-own{ position:absolute; left:10px; top:10px; background:linear-gradient(135deg,#2fbf71,#1fa35c); color:#fff; font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:999px; }
+  .v-body{ padding:12px 14px 14px; }
+  .v-title{ font-size:13.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
+  .v-meta{ display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+  .v-meta .sp{ flex:1; }
 
-  /* ---------- 详情页 ---------- */
-  .detail-wrap{ display:grid; grid-template-columns:1fr 300px; gap:20px; align-items:start; }
-  @media (max-width:1020px){ .detail-wrap{ grid-template-columns:1fr; } }
-  .player-box{ position:relative; background:#0b0f18; border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(8,12,22,.3); }
-  .player-box video{ width:100%; display:block; aspect-ratio:16/9; background:#000; }
-  .p-badge{ position:absolute; top:14px; font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:9px; z-index:2; }
-  .p-badge.ex{ left:14px; background:var(--orange); color:#fff; }
-  .p-badge.rk{ right:14px; background:rgba(10,14,24,.72); color:#fff; }
-  .info-panel{ margin-top:18px; }
-  .info-head{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-  .info-head h2{ font-size:19px; font-weight:800; }
-  .big-score{ font-size:29px; font-weight:800; color:var(--blue); font-variant-numeric:tabular-nums; }
-  .big-score small{ font-size:12px; color:var(--muted); font-weight:600; }
-  .rate-count{ font-size:12px; color:var(--muted); text-align:center; }
-  .info-actions{ margin-left:auto; display:flex; gap:9px; }
-  .mem-row{ display:flex; align-items:center; gap:9px; margin:13px 0; flex-wrap:wrap; }
-  .mem-row .m-item{ display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:#5a6478; width:42px; }
-  .desc{ font-size:13.5px; line-height:1.85; color:#454d5e; border-top:1px solid #eef1f7; padding-top:13px; margin-top:4px; }
+  /* ---------- 筛选条 ---------- */
+  .filter-bar{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:12px 16px; display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .search-box{ display:flex; align-items:center; gap:7px; background:#f4f6fb; border-radius:10px; padding:8px 12px; flex:1; min-width:180px; max-width:280px; color:#a8b0c2; }
+  .search-box input{ border:none; background:none; outline:none; font-size:12.5px; flex:1; font-family:inherit; }
+  .seg{ display:flex; background:#f4f6fb; border-radius:10px; padding:3px; gap:2px; }
+  .seg button{ border:none; background:none; padding:7px 14px; font-size:12px; font-weight:700; color:#7a8499; border-radius:8px; cursor:pointer; }
+  .seg button.active{ background:var(--blue); color:#fff; }
+  .sel-mini{ border:1px solid #e2e8f4; border-radius:10px; padding:8px 12px; font-size:12px; font-weight:600; color:#5a6478; background:#fff; cursor:pointer; font-family:inherit; }
+  .pgn{ display:flex; justify-content:center; gap:8px; margin-top:24px; }
+  .pgn button{ min-width:32px; height:32px; border-radius:9px; border:1px solid #e2e8f4; background:#fff; font-size:12.5px; font-weight:700; color:#5a6478; cursor:pointer; }
+  .pgn button.active{ background:var(--blue); color:#fff; border-color:var(--blue); }
 
-  .dim-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:13px; }
-  .dim-row .dl{ font-size:13px; font-weight:600; color:#3c4454; }
-  .dstars{ display:flex; gap:4px; }
-  .dstars span{ font-size:22px; color:#dde2ec; cursor:pointer; transition:transform .1s, color .1s; line-height:1; }
-  .dstars span.on{ color:#FFB61E; }
-  .dstars span:hover{ transform:scale(1.15); }
-  .q-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 16px; }
-  .q-tags button{ border:1px solid #dbe2f0; background:#f7f9fe; color:#5a6478; font-size:11.5px; font-weight:600; padding:6px 13px; border-radius:999px; cursor:pointer; transition:.15s; }
-  .q-tags button:hover{ border-color:var(--blue); color:var(--blue); }
-  .comment-item{ display:flex; gap:11px; padding:14px 2px; border-top:1px solid #f0f3f9; }
-  .comment-item .c-hd{ display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; flex-wrap:wrap; }
-  .comment-item .c-hd .tm{ font-size:11px; color:var(--muted); font-weight:500; }
-  .comment-item .c-stars{ color:#FFB61E; font-size:13px; letter-spacing:1px; }
-  .comment-item .c-tx{ font-size:12.5px; color:#454d5e; line-height:1.7; margin-top:5px; }
-
-  /* ---------- 教师端 ---------- */
-  .board-grid{ display:grid; grid-template-columns:1fr 265px; gap:20px; align-items:start; }
-  @media (max-width:1020px){ .board-grid{ grid-template-columns:1fr; } }
+  /* ---------- 排行 ---------- */
+  .top3-row{ display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:16px; margin-bottom:20px; align-items:stretch; }
+  .t3-card{ background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:26px 20px 22px; text-align:center; position:relative; }
+  .t3-card.first{ border:2px solid #ffd45e; box-shadow:0 8px 26px rgba(255,190,40,.18); }
+  .t3-card .mdl{ font-size:30px; margin-bottom:8px; }
+  .t3-card .gn{ font-size:15px; font-weight:800; }
+  .t3-card .wt{ font-size:11.5px; color:var(--muted); margin:3px 0 10px; }
+  .t3-card .sc{ font-size:26px; font-weight:800; color:var(--blue-d); font-variant-numeric:tabular-nums; }
   table.rank{ width:100%; border-collapse:collapse; }
-  table.rank th{ font-size:11.5px; color:var(--muted); font-weight:700; text-align:left; padding:0 12px 10px; }
-  table.rank td{ padding:11px 12px; font-size:13.5px; border-top:1px solid #f0f3f9; vertical-align:middle; }
-  table.rank tbody tr{ cursor:pointer; transition:background .13s; }
-  table.rank tbody tr:hover{ background:#f5f8ff; }
-  .rk-medal{ font-size:19px; } .rk-num{ display:inline-grid; place-items:center; width:26px; height:26px; border-radius:9px; background:#eef1f7; color:#7a8499; font-size:12.5px; font-weight:700; }
-  table.rank tbody tr.r1{ background:#fff8e1; } table.rank tbody tr.r1:hover{ background:#fff2c9; }
-  table.rank tbody tr.r2{ background:#f4f6fa; } table.rank tbody tr.r2:hover{ background:#eceff6; }
-  table.rank tbody tr.r3{ background:#fdf1e7; } table.rank tbody tr.r3:hover{ background:#fae8da; }
-  .cell-score{ font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; }
-  .cell-score.s1{ color:#d99a12; } .cell-score.s2{ color:var(--blue); } .cell-score.s3{ color:#e0643a; }
-  .cell-sub{ font-size:11px; color:var(--muted); }
-  .spark{ display:flex; align-items:flex-end; gap:3px; height:26px; }
-  .spark i{ width:6px; border-radius:3px 3px 1px 1px; background:linear-gradient(180deg,#7ee2a8,#34c46e); min-height:4px; }
-  .podium{ text-align:center; padding-top:8px; }
-  .pod-stage{ display:flex; align-items:flex-end; justify-content:center; gap:14px; margin:16px 0 6px; }
-  .pod-item{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-  .pod-item .crown{ font-size:20px; margin-bottom:-4px; }
-  .pod-box{ border-radius:12px 12px 0 0; display:grid; place-items:center; color:#fff; font-weight:800; width:66px; }
-  .pod-1 .pod-box{ height:58px; background:linear-gradient(180deg,#f6c445,#e9a416); font-size:17px; width:74px; }
-  .pod-2 .pod-box{ height:42px; background:linear-gradient(180deg,#c9cfd6,#a8b0bc); font-size:14px; }
-  .pod-3 .pod-box{ height:34px; background:linear-gradient(180deg,#dfa06f,#cf8851); font-size:13px; }
-  .pod-g{ font-size:12px; font-weight:700; } .pod-s{ font-size:13px; font-weight:800; color:#d99a12; }
-  .best-tag{ font-size:10px; background:#fff5dd; color:#c98a06; font-weight:700; padding:2px 8px; border-radius:7px; }
-  .feat-card{ display:flex; gap:11px; align-items:center; padding:10px 0; border-top:1px solid #f0f3f9; cursor:pointer; }
-  .feat-card:first-of-type{ border-top:none; }
-  .feat-thumb{ position:relative; width:86px; height:56px; border-radius:9px; overflow:hidden; flex-shrink:0; background:#101622; }
-  .feat-thumb img{ width:100%; height:100%; object-fit:cover; }
-  .feat-thumb .fp{ position:absolute; inset:0; display:grid; place-items:center; background:rgba(8,12,22,.25); color:#fff; font-size:16px; }
-  .feat-rec{ position:absolute; left:4px; top:4px; background:var(--orange); color:#fff; font-size:9px; font-weight:700; padding:2px 6px; border-radius:5px; }
-  .feat-card .ft{ font-size:12.5px; font-weight:700; } .feat-card .fv{ font-size:11px; color:var(--muted); margin-top:4px; }
-  .warn-bar{ display:flex; align-items:center; gap:10px; background:#fff8ec; border:1px solid #ffe4b3; border-radius:14px; padding:13px 18px; margin-top:20px; font-size:13px; font-weight:600; color:#a3720a; }
-  .warn-bar .btn{ margin-left:auto; }
+  table.rank th{ text-align:left; font-size:11.5px; color:var(--muted); font-weight:600; padding:10px 12px; border-bottom:1px solid var(--line); }
+  table.rank td{ padding:13px 12px; font-size:13px; border-bottom:1px solid #f3f5fa; }
+  table.rank tr:last-child td{ border-bottom:none; }
+  table.rank tbody tr{ cursor:pointer; transition:background .12s; }
+  table.rank tbody tr:hover{ background:#f7f9fe; }
+  .rk-n{ display:inline-grid; place-items:center; width:26px; height:26px; border-radius:9px; background:#f1f4fa; color:#7a8499; font-size:12px; font-weight:800; }
+  .rk-n.n1{ background:#ffe9b8; color:#9a6b00; } .rk-n.n2{ background:#e8ecf4; color:#5a6478; } .rk-n.n3{ background:#f7e2cd; color:#a05f22; }
+  .cell-score{ font-weight:800; color:var(--blue-d); font-variant-numeric:tabular-nums; }
+  .chg{ font-weight:700; font-size:12px; } .chg.up{ color:#22a35c; } .chg.down{ color:#e5484d; } .chg.flat{ color:#a8b0c2; }
 
-  /* ---------- 我的评分 ---------- */
-  .my-rate-item{ display:flex; align-items:center; gap:14px; background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:14px 18px; margin-bottom:12px; cursor:pointer; transition:.15s; }
-  .my-rate-item:hover{ transform:translateY(-2px); }
+  /* ---------- 上传 / 我的小组 ---------- */
+  .two-col{ display:grid; grid-template-columns:1.6fr 1fr; gap:18px; align-items:start; }
+  .drop-zone{ border:2px dashed #ccd6ee; border-radius:14px; padding:38px 20px; text-align:center; cursor:pointer; background:#fafcff; transition:.15s; margin-bottom:16px; }
+  .drop-zone:hover,.drop-zone.drag{ border-color:var(--blue); background:#f2f6ff; }
+  .drop-zone .dz-ic{ font-size:30px; margin-bottom:8px; }
+  .drop-zone p{ font-size:13px; font-weight:700; color:#3a4358; margin-bottom:4px; }
+  .drop-zone span{ font-size:11.5px; color:var(--muted); }
+  .up-progress{ margin-top:14px; text-align:left; background:#f4f7fd; border-radius:10px; padding:10px 14px; }
+  .up-progress .fn{ font-size:12px; font-weight:700; display:flex; justify-content:space-between; }
+  .up-progress .fs{ font-size:10.5px; color:var(--muted); margin:3px 0 7px; }
+  .up-progress .bar{ height:7px; border-radius:4px; background:#e6ebf6; overflow:hidden; }
+  .up-progress .bar i{ display:block; height:100%; width:0%; border-radius:4px; background:linear-gradient(90deg,#5b8cff,#3d5af1); transition:width .25s; }
+  .cover-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .cover-opt{ position:relative; border-radius:10px; overflow:hidden; cursor:pointer; border:2px solid transparent; aspect-ratio:16/9; }
+  .cover-opt img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cover-opt.sel{ border-color:var(--blue); }
+  .cover-opt .ck{ position:absolute; right:6px; top:6px; width:18px; height:18px; border-radius:50%; background:var(--blue); color:#fff; font-size:11px; display:grid; place-items:center; }
+  .tag-input{ display:flex; flex-wrap:wrap; gap:8px; padding:9px 11px; border:1px solid #dde3f0; border-radius:10px; min-height:44px; cursor:text; }
+  .tag-input input{ border:none; outline:none; flex:1; min-width:110px; font-size:13px; font-family:inherit; }
+  .tag-chip{ background:var(--blue-l); color:var(--blue-d); font-size:12px; font-weight:700; border-radius:999px; padding:4px 8px 4px 12px; display:inline-flex; align-items:center; gap:6px; }
+  .tag-chip b{ cursor:pointer; font-weight:800; }
+  .f-block{ margin-bottom:16px; }
+  .notice{ font-size:11.5px; color:#a8770a; background:#fff8e6; border-radius:10px; padding:10px 14px; line-height:1.6; }
+  .ver-item{ display:flex; gap:11px; padding:11px 0; border-bottom:1px solid #f3f5fa; }
+  .ver-item:last-child{ border:none; }
+  .ver-badge{ width:30px; height:30px; border-radius:9px; background:var(--blue-l); color:var(--blue); font-size:11px; font-weight:800; display:grid; place-items:center; flex-shrink:0; }
+
+  /* ---------- 详情 / 评分 ---------- */
+  .detail-wrap{ display:grid; grid-template-columns:1.7fr 1fr; gap:18px; align-items:start; }
+  .player-box{ background:#0d1322; border-radius:16px; overflow:hidden; position:relative; }
+  .player-box video{ width:100%; display:block; aspect-ratio:16/9; }
+  .dim-row{ display:flex; align-items:center; gap:10px; margin-bottom:13px; }
+  .dim-row .dl{ font-size:12.5px; font-weight:600; color:#3a4358; width:64px; flex-shrink:0; }
+  .dim-row .dstars{ display:flex; gap:3px; }
+  .dim-row .dstars span{ font-size:19px; cursor:pointer; color:#dfe4ee; transition:.1s; }
+  .dim-row .dstars span.on{ color:#ffb61e; }
+  .dim-bar{ flex:1; height:7px; border-radius:4px; background:#eef1f7; overflow:hidden; position:relative; }
+  .dim-bar i{ display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,#5b8cff,#3d5af1); }
+  .dim-val{ font-size:12px; font-weight:800; color:var(--blue-d); width:42px; text-align:right; font-variant-numeric:tabular-nums; }
+  .q-tags{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
+  .q-tags button{ border:1px solid #dfe5f2; background:#f8faff; font-size:11.5px; color:#5a6478; border-radius:999px; padding:5px 12px; cursor:pointer; }
+  .q-tags button:hover{ border-color:var(--blue); color:var(--blue); }
+  .comment-item{ display:flex; gap:11px; padding:13px 0; border-bottom:1px solid #f3f5fa; }
+  .comment-item:last-child{ border:none; }
+  .c-hd{ font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .c-hd .tm{ font-size:10.5px; color:#a8b0c2; font-weight:500; }
+  .c-tx{ font-size:12.5px; color:#4a5470; line-height:1.7; margin-top:4px; }
+
+  /* ---------- 小组卡 ---------- */
+  .g-grid{ display:grid; repeat:4; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .g-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:18px; }
+  .g-card .num{ font-size:20px; font-weight:800; color:var(--blue-d); }
+  .g-card .gname{ font-size:14px; font-weight:800; margin:2px 0 2px; }
+  .g-card .leader{ font-size:11px; color:var(--muted); margin-bottom:8px; }
+  .g-card .wtitle{ font-size:12px; color:#4a5470; min-height:18px; margin-bottom:10px; }
+  .mem-chips{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+  .mem-chips span{ font-size:10px; background:#f1f4fa; color:#5a6478; border-radius:6px; padding:3px 7px; font-weight:600; }
+  .g-foot{ display:flex; align-items:center; justify-content:space-between; }
+  .st-ok{ color:#22a35c; font-size:11.5px; font-weight:700; } .st-no{ color:#e5a13d; font-size:11.5px; font-weight:700; }
+
+  /* ---------- 分析图表 ---------- */
+  .chart-bars{ display:flex; align-items:flex-end; gap:14px; height:180px; padding:10px 6px 0; }
+  .chart-bars .cb{ flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; height:100%; justify-content:flex-end; }
+  .chart-bars .cb i{ width:70%; max-width:34px; border-radius:7px 7px 0 0; background:linear-gradient(180deg,#5b8cff,#3d5af1); transition:height .4s; }
+  .chart-bars .cb span{ font-size:10.5px; color:var(--muted); font-weight:600; }
+  .donut-wrap{ display:flex; align-items:center; gap:22px; }
+  .legend div{ display:flex; align-items:center; gap:8px; font-size:12px; color:#4a5470; padding:5px 0; }
+  .legend i{ width:10px; height:10px; border-radius:3px; }
 
   /* ---------- 弹窗 / Toast ---------- */
   .modal-mask{ position:fixed; inset:0; background:rgba(20,26,40,.45); display:grid; place-items:center; z-index:100; backdrop-filter:blur(3px); }
-  .modal{ background:#fff; border-radius:18px; padding:28px 30px; width:360px; max-width:92vw; box-shadow:0 20px 60px rgba(10,16,30,.3); }
+  .modal{ background:#fff; border-radius:18px; padding:28px 30px; width:370px; max-width:92vw; box-shadow:0 20px 60px rgba(10,16,30,.3); }
   .modal h3{ font-size:17px; font-weight:800; margin-bottom:6px; }
   .modal .md-sub{ font-size:12.5px; color:var(--muted); margin-bottom:16px; }
   .role-pick{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
   .role-pick button{ border:2px solid #e2e8f4; background:#f8faff; border-radius:14px; padding:16px 10px; cursor:pointer; font-size:14px; font-weight:700; transition:.15s; }
-  .role-pick button.sel{ border-color:var(--blue); background:#eef4ff; color:var(--blue); }
+  .role-pick button.sel{ border-color:var(--blue); background:var(--blue-l); color:var(--blue); }
   #toast{ position:fixed; left:50%; bottom:36px; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; }
-  .toast-item{ background:rgba(24,30,45,.92); color:#fff; font-size:13px; font-weight:600; padding:11px 22px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); animation:toastIn .25s ease; }
-  @keyframes toastIn{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+  .toast-item{ background:rgba(24,30,45,.92); color:#fff; font-size:13px; font-weight:600; padding:11px 22px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+
+  @media (max-width:1100px){ .v-grid,.g-grid{ grid-template-columns:repeat(3,1fr); } .stat-row{ grid-template-columns:repeat(2,1fr); } .two-col,.detail-wrap{ grid-template-columns:1fr; } }
+  @media (max-width:760px){ .v-grid,.g-grid{ grid-template-columns:repeat(2,1fr); } nav.top button{ padding:0 10px; font-size:13px; } .top3-row{ grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -253,29 +236,13 @@
 /* ================= 基础 ================= */
 const GROUPS = Array.from({length:8},(_,i)=>({id:'g'+(i+1), name:'第'+(i+1)+'组'}));
 const TEACHER_PIN = '123456';
-const DEADLINE = new Date('2026-10-29T23:59:59');
+const DEADLINE = new Date('2026-10-29T20:00:00');
 const DIMS = [['content','内容完整性'],['creativity','创意表现'],['tech','技术制作'],['team','团队协作'],['expr','表达清晰度']];
 const QUICK_TAGS = ['画面精美','逻辑清晰','配音专业','创意十足'];
 const AV_COLORS = ['#5b8def','#8a63d2','#e0648a','#3aa78d','#e0913a','#4aa3e0','#6b7fd7','#c05a3a'];
+const COURSE = 'AI健康科普视频制作';
 
 let DATA = { works:{}, ratings:{} };
-
-/* 线性 SVG 图标（菜单/品牌，跟随文字颜色） */
-const SVG = (d,extra='') => `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}${extra}</svg>`;
-const ICONS = {
-  cloud: SVG('<path d="M7 18a4.5 4.5 0 1 1 .6-8.96A6 6 0 0 1 19 11.3 3.5 3.5 0 0 1 18 18z" fill="currentColor" stroke="none"/>'),
-  square: SVG('<rect x="3" y="4" width="18" height="16" rx="3"/>','<path d="M10.2 9.3l4.8 2.7-4.8 2.7z" fill="currentColor" stroke="none"/>'),
-  upload: SVG('<path d="M12 16V5.5"/>','<path d="M7.5 9.5 12 5l4.5 4.5"/><path d="M4 16v2.6A2.4 2.4 0 0 0 6.4 21h11.2a2.4 2.4 0 0 0 2.4-2.4V16"/>'),
-  star: SVG('<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>'),
-  msg: SVG('<path d="M21 11.8A7.8 7.8 0 0 1 13.2 19H4.5l2-3A7.8 7.8 0 1 1 21 11.8z"/>'),
-  user: SVG('<circle cx="12" cy="8.2" r="3.8"/>','<path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/>'),
-  board: SVG('<path d="M4 20V11"/><path d="M10 20V4.5"/><path d="M16 20v-6.5"/><path d="M2.5 20h19"/>'),
-  doc: SVG('<rect x="4.5" y="3.5" width="15" height="17" rx="3"/>','<path d="M8.7 12.4l2.2 2.2 4.4-4.4"/>'),
-  users: SVG('<circle cx="9.2" cy="8.6" r="3.4"/>','<path d="M3 19.5a6.4 6.4 0 0 1 12.4 0"/><path d="M15.8 5.8a3.4 3.4 0 0 1 0 5.6"/><path d="M17.4 14.2a6.4 6.4 0 0 1 3.6 5.3"/>'),
-  chart: SVG('<path d="M3.5 20.5h17"/><rect x="5.5" y="10" width="3.4" height="7.5" rx="1.2"/><rect x="10.5" y="5.5" width="3.4" height="12" rx="1.2"/><rect x="15.5" y="13" width="3.4" height="4.5" rx="1.2"/>'),
-  gear: SVG('<circle cx="12" cy="12" r="3.1"/>','<path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M5.6 18.4l1.7-1.7M16.7 7.3l1.7-1.7"/>'),
-  star2: SVG('<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.7-5.1-2.7-5.1 2.7 1-5.7-4.1-4 5.7-.8z"/>')
-};
 let ME = JSON.parse(localStorage.getItem('xkj_identity') || 'null');
 let uploading = false;
 
@@ -289,18 +256,25 @@ function avColor(name){ let h=0; for(const c of String(name)) h=(h*31+c.charCode
 function avatar(name, cls='av-30'){ return `<span class="avatar ${cls}" style="background:${avColor(name)}">${esc(String(name||'?').slice(0,1))}</span>`; }
 function fmtDur(s){ s=Math.max(0,Math.round(s||0)); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
 function fmtTime(t){ const d=new Date(t); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+function fmtDay(t){ const d=new Date(t); const today=new Date(); const yest=new Date(Date.now()-86400000);
+  const p=n=>String(n).padStart(2,'0'); const hm=`${p(d.getHours())}:${p(d.getMinutes())}`;
+  if(d.toDateString()===today.toDateString()) return '今天 '+hm;
+  if(d.toDateString()===yest.toDateString()) return '昨天 '+hm;
+  return `${p(d.getMonth()+1)}-${p(d.getDate())} ${hm}`; }
 
-/* 评分计算 */
+/* 评分计算：内部 100 分制，界面展示 5 分制（与评分星级一致） */
 const rateAvg = r => (r.dims.content+r.dims.creativity+r.dims.tech+r.dims.team+r.dims.expr)/5; // 1-5
 const rateScore = r => rateAvg(r)*20; // 0-100
+const disp = avg100 => (avg100/20).toFixed(2); // 展示为 5 分制
 function workRatings(wid){ return Object.entries(DATA.ratings[wid]||{}).map(([rid,r])=>({rid,...r})); }
 function workAvg(wid){ const rs=workRatings(wid); return rs.length ? rs.reduce((a,r)=>a+rateScore(r),0)/rs.length : null; }
 function rankedWorks(){
   return Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}))
     .filter(w=>w.avg!=null).sort((a,b)=>b.avg-a.avg);
 }
-function starsHTML(score100, size){ // 静态展示星
-  const full = score100==null ? 0 : Math.round(score100/20);
+const gNameOf = id => GROUPS.find(g=>g.id===id)?.name || id;
+function starsHTML(avg100, size){
+  const full = avg100==null ? 0 : Math.round(avg100/20);
   let h=''; for(let i=1;i<=5;i++) h+=`<span class="${i<=full?'':'off'}">★</span>`;
   return `<span class="stars"${size?` style="font-size:${size}px"`:''}>${h}</span>`;
 }
@@ -309,8 +283,8 @@ function starsHTML(score100, size){ // 静态展示星
 async function loadData(rerender=true){
   try{
     const [w,r] = await Promise.all([fetch('/api/works').then(x=>x.json()), fetch('/api/ratings').then(x=>x.json())]);
-    DATA = {works:w, ratings:r};
-    if(rerender && !uploading && !['#/upload','#/my'].includes(location.hash) && !location.hash.startsWith('#/work') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) renderRoute();
+    DATA = {works:w||{}, ratings:r||{}};
+    if(rerender && !uploading && !location.hash.startsWith('#/group') && !location.hash.startsWith('#/work') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) renderRoute();
   }catch(e){}
 }
 async function api(url, body){
@@ -321,18 +295,13 @@ async function api(url, body){
 }
 
 /* ================= 身份 ================= */
-function requireIdentity(){
-  if(ME) return true;
-  openIdentityModal();
-  return false;
-}
 function openIdentityModal(){
   const old = $('.modal-mask'); if(old) old.remove();
   const m = document.createElement('div'); m.className='modal-mask';
   m.innerHTML = `
     <div class="modal">
-      <h3>欢迎来到星课云·作品互评</h3>
-      <div class="md-sub">AI健康科普视频制作 · 请选择你的身份（本机记忆）</div>
+      <h3>欢迎来到课堂影像互评平台</h3>
+      <div class="md-sub">${COURSE} · 请选择你的身份（本机记忆）</div>
       <div class="role-pick">
         <button id="rStudent" class="sel">🎓 我是学生</button>
         <button id="rTeacher">👩‍🏫 我是教师</button>
@@ -347,9 +316,7 @@ function openIdentityModal(){
         <div class="f-label">教师口令</div>
         <input class="f-input" id="idPin" type="password" placeholder="请输入教师口令">
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-top:20px">
-        <button class="btn btn-blue" id="idOk" style="width:100%">进入平台</button>
-      </div>
+      <div style="margin-top:20px"><button class="btn btn-blue" id="idOk" style="width:100%">进入平台</button></div>
     </div>`;
   document.body.appendChild(m);
   let role='student';
@@ -362,155 +329,248 @@ function openIdentityModal(){
       ME={role:'student',name,group};
     }else{
       if(m.querySelector('#idPin').value!==TEACHER_PIN) return toast('教师口令错误');
-      ME={role:'teacher',name:'教师'};
+      ME={role:'teacher',name:'王老师'};
     }
     localStorage.setItem('xkj_identity',JSON.stringify(ME));
-    m.remove(); location.hash = ME.role==='teacher' ? '#/teacher' : '#/square';
+    m.remove(); location.hash = ME.role==='teacher' ? '#/teacher' : '#/home';
     renderApp();
   };
 }
 
-/* ================= 框架 ================= */
+/* ================= 框架（顶部导航） ================= */
+const IC_PLAY = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M10 9.3l4.8 2.7-4.8 2.7z" fill="currentColor" stroke="none"/></svg>';
 function renderApp(){
   if(!ME){ $('#app').innerHTML=''; openIdentityModal(); return; }
-  const dark = ME.role==='teacher';
-  const menus = dark
-    ? [['#/teacher',ICONS.board,'排名榜',true],['',ICONS.doc,'作品审核',false],['',ICONS.star,'评分管理',false],['',ICONS.users,'班级管理',false],['',ICONS.chart,'数据分析',false],['',ICONS.gear,'设置',false]]
-    : [['#/square',ICONS.square,'视频广场',true],['#/upload',ICONS.upload,'上传作品',true],['#/my',ICONS.star,'我的评分',true],['',ICONS.msg,'消息通知',false],['',ICONS.user,'个人中心',false]];
+  const isT = ME.role==='teacher';
+  const menus = isT
+    ? [['#/teacher','工作台'],['#/teacher/videos','视频管理'],['#/teacher/groups','小组管理'],['#/teacher/analytics','成绩分析']]
+    : [['#/home','首页'],['#/gallery','视频广场'],['#/ranking','排行榜'],['#/group','我的小组']];
   $('#app').innerHTML = `
-    <aside class="${dark?'dark':''}">
-      ${dark
-        ? `<div class="brand"><span class="b-icon">${ICONS.board}</span>
-            <div>星课云 · 教学看板<small>AI健康科普视频制作</small></div></div>`
-        : `<div class="brand-block"><span class="bb-ic">${ICONS.cloud}</span>
-            <div><b>星课云 · 作品互评</b><small>AI健康科普视频制作</small></div></div>`}
-      <nav class="menu">
-        ${menus.map(([h,ic,lb,ok])=>`<button data-h="${h}" data-ok="${ok}"><span class="m-ic">${ic}</span>${lb}</button>`).join('')}
-      </nav>
-      <div class="side-foot">
-        <div class="user-card" id="userCard">
-          ${avatar(ME.name,'av-36')}
-          <div><div class="nm">${esc(ME.name)}</div><div class="gp">${dark?'教师端 · 点击切换':(GROUPS.find(g=>g.id===ME.group)?.name||'')+' · 点击切换'}</div></div>
+    <header><div class="hd">
+      <div class="logo"><span class="lg-ic">${IC_PLAY}</span>
+        <div>课堂影像互评平台<small>${COURSE}</small></div></div>
+      <nav class="top">${menus.map(([h,lb])=>`<button data-h="${h}">${lb}</button>`).join('')}</nav>
+      <div class="hd-right">
+        <span class="role-chip ${isT?'t':''}">${isT?'教师端':'学生端'}</span>
+        <div class="u-box" id="userBox">
+          ${avatar(ME.name,'av-30')}
+          <div><div class="nm">${esc(ME.name)}</div><div class="gp">${isT?COURSE+' · 教师账号':gNameOf(ME.group)+' · 学生账号'}</div></div>
         </div>
       </div>
-    </aside>
-    <main id="view"></main>`;
-  document.querySelectorAll('.menu button').forEach(b=>b.onclick=()=>{
-    if(b.dataset.ok==='true') location.hash=b.dataset.h;
-    else toast('功能建设中，敬请期待');
-  });
-  $('#userCard').onclick=()=>{ openIdentityModal(); };
+    </div></header>
+    <main id="view"></main>
+    <div class="foot">${isT?'教师端':'学生端'} · 课堂影像互评平台</div>`;
+  document.querySelectorAll('nav.top button').forEach(b=>b.onclick=()=>{ location.hash=b.dataset.h; });
+  $('#userBox').onclick=openIdentityModal;
   renderRoute();
 }
-
 function setActiveMenu(){
-  const h = location.hash || (ME.role==='teacher'?'#/teacher':'#/square');
-  document.querySelectorAll('.menu button').forEach(b=>{
-    b.classList.toggle('active', b.dataset.h && (h===b.dataset.h || (b.dataset.h==='#/square'&&h.startsWith('#/work')) || (b.dataset.h==='#/upload'&&h==='#/upload')));
+  const h = location.hash || (ME.role==='teacher'?'#/teacher':'#/home');
+  document.querySelectorAll('nav.top button').forEach(b=>{
+    const bh=b.dataset.h;
+    let on = h===bh;
+    if(bh==='#/gallery' && h.startsWith('#/work')) on=true;
+    if(bh==='#/teacher/videos' && h.startsWith('#/work')) on=true;
+    b.classList.toggle('active',on);
   });
 }
-
 function renderRoute(){
   if(!ME) return;
   setActiveMenu();
-  const h = location.hash || (ME.role==='teacher'?'#/teacher':'#/square');
+  const h = location.hash || (ME.role==='teacher'?'#/teacher':'#/home');
   if(h.startsWith('#/work/')) return renderWork(decodeURIComponent(h.slice(7)));
-  if(h==='#/upload') return ME.role==='student' ? renderUpload() : (location.hash='#/teacher');
-  if(h==='#/teacher') return ME.role==='teacher' ? renderTeacher() : (location.hash='#/square');
-  if(h==='#/my') return ME.role==='student' ? renderMy() : (location.hash='#/teacher');
-  return ME.role==='teacher' ? renderTeacher(true) : renderSquare();
+  if(ME.role==='teacher'){
+    if(h==='#/teacher/videos') return renderTVideos();
+    if(h==='#/teacher/groups') return renderTGroups();
+    if(h==='#/teacher/analytics') return renderTAnalytics();
+    return renderTHome();
+  }
+  if(h==='#/gallery') return renderGallery();
+  if(h==='#/ranking') return renderRanking();
+  if(h==='#/group') return renderGroup();
+  return renderHome();
 }
+const crumb = t => `<div class="crumb">${t}</div>`;
 
-/* ================= 视频广场（学生） ================= */
-let squareTab='all', squareQ='';
-function renderSquare(){
-  const myId = ME.group;
-  const all = Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}));
+/* ================= 学生 · 首页 ================= */
+function renderHome(){
+  const myId=ME.group;
+  const all=Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}));
   const myRated = wid => !!(DATA.ratings[wid]||{})[myId];
-  let list = all.filter(w=>w.id!==myId);
-  if(squareTab==='unrated') list=list.filter(w=>!myRated(w.id));
-  if(squareTab==='rated') list=list.filter(w=>myRated(w.id));
-  if(squareTab==='all') list=all.slice(); // 全部 tab 含本组作品（带绿色角标）
-  if(squareQ){ const q=squareQ.toLowerCase(); list=list.filter(w=>(w.title+(w.members||[]).join('')+GROUPS.find(g=>g.id===w.id)?.name).toLowerCase().includes(q)); }
-  list.sort((a,b)=>(b.avg??-1)-(a.avg??-1));
+  const pending = all.filter(w=>w.id!==myId && !myRated(w.id));
+  const ranked=rankedWorks();
+  const myRankIdx=ranked.findIndex(w=>w.id===myId);
+  const myWork=DATA.works[myId];
+  const feats=(all.filter(w=>w.featured&&w.avg!=null).length?all.filter(w=>w.featured&&w.avg!=null):ranked).slice(0,3);
+  const myRateCount=Object.values(DATA.ratings).filter(m=>m[myId]).length;
+  const totalNeed=all.filter(w=>w.id!==myId).length;
+  const ratePct=totalNeed?Math.round(myRateCount/totalNeed*100):0;
 
-  const unrated = all.filter(w=>w.id!==myId && !myRated(w.id)).length;
-  const myWork = DATA.works[myId];
-  const myAvg = myWork ? workAvg(myId) : null;
-  const daysLeft = Math.max(0, Math.ceil((DEADLINE-Date.now())/86400000));
-  const myRateCount = Object.values(DATA.ratings).filter(m=>m[myId]).length;
-
-  $('#view').innerHTML = `<div class="page">
-    <div class="pg-head">
-      <div><h1>视频广场</h1><div class="sub">共 ${all.filter(w=>w.id!==myId).length} 个小组作品${unrated?`，你还有 ${unrated} 个未评分`:'，全部评分已完成 🎉'}</div></div>
-      <div class="sp"></div>
-      <div class="search-box">🔍<input id="sq" placeholder="搜索小组作品" value="${esc(squareQ)}"></div>
-      <div class="seg" id="seg">
-        <button data-t="all" class="${squareTab==='all'?'active':''}">全部</button>
-        <button data-t="unrated" class="${squareTab==='unrated'?'active':''}">未评分</button>
-        <button data-t="rated" class="${squareTab==='rated'?'active':''}">已评分</button>
-      </div>
+  $('#view').innerHTML = `
+    <div class="banner blue">
+      <h2>欢迎回来，${esc(ME.name)} 👋</h2>
+      <p>用影像记录创意，用评价见证成长。${pending.length?`今日还有 ${pending.length} 个小组作品待评分。`:'全部互评任务已完成，真棒！'}</p>
+      <div class="tags"><span>${gNameOf(myId)} · ${COURSE}</span><span>${myWork?'✓ 本组成果已发布':'本组成果未上传'}</span></div>
+      <button class="bn-btn" onclick="location.hash='#/group'">管理我的视频</button>
     </div>
     <div class="stat-row">
-      <div class="stat-card"><span class="ic" style="background:#eef4ff">🎬</span><div><div class="lb">本周作品</div><div class="vl">${all.length}</div></div></div>
-      <div class="stat-card"><span class="ic" style="background:#eef9f1">✅</span><div><div class="lb">我已完成评分</div><div class="vl">${myRateCount}</div></div></div>
-      <div class="stat-card"><span class="ic" style="background:#fff7e8">🏅</span><div><div class="lb">我的作品均分</div><div class="vl">${myAvg!=null?myAvg.toFixed(1):'--'}</div></div></div>
-      <div class="stat-card"><span class="ic" style="background:#f3efff">⏰</span><div><div class="lb">剩余时间</div><div class="vl">${daysLeft}<small> 天</small></div></div></div>
+      <div class="stat-card"><span class="ic" style="background:var(--blue-l)">👥</span><div><div class="lb">参评小组</div><div class="vl">${GROUPS.length}<small> 个小组</small></div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#e6f7f0">🎬</span><div><div class="lb">已上传视频</div><div class="vl">${all.length}<small> 份作品</small></div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#fff7e8">✅</span><div><div class="lb">完成评分</div><div class="vl">${ratePct}<small>%</small></div><div class="ex">${ratePct>=100?'全部完成':ratePct>=50?'进度良好':'继续加油'}</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#f3efff">🏆</span><div><div class="lb">当前排名</div><div class="vl">${myRankIdx>=0?'第'+(myRankIdx+1)+'名':'--'}</div><div class="ex">${myWork?'已上榜':'上传作品后上榜'}</div></div></div>
     </div>
-    ${all.length===0 ? `<div class="empty"><div class="e-icon">🎬</div><p>还没有小组上传作品</p><span>第一个上传的小组将出现在这里，快去上传本组的 AI 健康科普视频吧</span><div style="margin-top:20px"><button class="btn btn-blue" onclick="location.hash='#/upload'">去上传作品</button></div></div>`
-    : list.length===0 ? `<div class="empty"><div class="e-icon">🔍</div><p>没有符合条件的作品</p><span>换个筛选条件或搜索词试试</span></div>`
-    : `<div class="grid">${list.map(w=>{
-        const mine = myRated(w.id);
-        const myR = mine ? (DATA.ratings[w.id]||{})[myId] : null;
-        const gName = GROUPS.find(g=>g.id===w.id)?.name||'';
-        return `<div class="v-card">
-          <div class="thumb" onclick="location.hash='#/work/${w.id}'">
-            ${w.cover?`<img src="/api/file/${w.cover}" alt="">`:`<video src="/api/file/${w.file}" preload="metadata" muted></video>`}
-            ${w.id===myId?'<span class="badge-own">本组作品</span>':(w.avg!=null&&w.avg>=90?'<span class="badge-excellent">优秀作品</span>':'')}
-            <span class="dur">${fmtDur(w.duration)}</span>
-          </div>
-          <div class="v-body">
-            <div class="v-line1">
-              <span class="av-stack">${(w.members&&w.members.length?w.members:[gName]).slice(0,3).map(m=>avatar(m,'av-24')).join('')}</span>
-              <span class="v-title">${esc(w.title)}</span>
-              <span class="v-score ${w.avg==null?'none':''}">${w.avg!=null?w.avg.toFixed(1):'--'}<small> 分</small></span>
-            </div>
-            <div class="v-members">${esc((w.members||[]).join('、')||gName)}</div>
-            <span class="g-tag">${gName}</span>
-            <div class="v-foot">
-              ${starsHTML(myR?rateScore(myR):null)}
-              ${w.id===myId?`<button class="mini-btn go" style="background:#eef2fb;color:#4a5470;box-shadow:none" onclick="location.hash='#/work/${w.id}'">查看本组作品</button>`
-                :mine?`<button class="mini-btn done" onclick="location.hash='#/work/${w.id}'">已评分 ✓ 修改</button>`
-                    :`<button class="mini-btn go" onclick="location.hash='#/work/${w.id}'">去打分</button>`}
-            </div>
-          </div>
-        </div>`;}).join('')}</div>`}
+    <div class="two-col" style="grid-template-columns:1.9fr 1fr">
+      <div class="card">
+        <div style="display:flex;align-items:baseline;margin-bottom:14px"><h3 style="margin:0">优秀作品</h3><span style="font-size:11.5px;color:var(--muted);margin-left:8px">发现同学们的精彩创意</span><span style="flex:1"></span><a class="link" onclick="location.hash='#/gallery'">查看全部 →</a></div>
+        ${feats.length===0?`<div class="empty" style="padding:30px"><div class="e-icon">🎬</div><p>还没有作品上榜</p><span>上传并获评分后展示在这里</span></div>`
+        :`<div class="v-grid c3">${feats.map(w=>vCard(w,myId)).join('')}</div>`}
+      </div>
+      <div class="card">
+        <h3>实时排行榜 <span style="font-size:11px;color:var(--muted);font-weight:600">综合评分</span></h3>
+        <div style="margin-top:10px">
+        ${ranked.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:20px 0">暂无上榜作品</div>`
+        :ranked.slice(0,5).map((w,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f3f5fa;cursor:pointer" onclick="location.hash='#/work/${w.id}'">
+            <span class="rk-n ${i<3?'n'+(i+1):''}">${i+1}</span>
+            ${avatar(gNameOf(w.id),'av-24')}
+            <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700">${gNameOf(w.id)}</div><div style="font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(w.title)}</div></div>
+            <span class="cell-score">${disp(w.avg)}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3>我的待办 <span style="font-size:11px;color:var(--muted);font-weight:600">在互评截止前完成以下任务</span></h3>
+      <div style="margin-top:8px">
+        ${pending.slice(0,3).map(w=>`<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f3f5fa;font-size:12.5px"><span style="color:var(--blue)">●</span><div><b>完成${gNameOf(w.id)}《${esc(w.title)}》评分</b><div style="font-size:11px;color:var(--muted);margin-top:2px">评分截止：2026-10-29 20:00</div></div></div>`).join('')}
+        ${myWork?`<div style="display:flex;gap:10px;padding:10px 0;font-size:12.5px"><span style="color:#22a35c">●</span><div><b>检查本组已发布的视频信息</b><div style="font-size:11px;color:var(--muted);margin-top:2px">可随时修改作品名称或重新上传视频</div></div></div>`
+        :`<div style="display:flex;gap:10px;padding:10px 0;font-size:12.5px"><span style="color:#e5a13d">●</span><div><b>上传本组视频成果</b><div style="font-size:11px;color:var(--muted);margin-top:2px">本组还未提交作品，点击右上角「管理我的视频」上传</div></div></div>`}
+        ${pending.length===0&&myWork?'<div style="color:var(--muted);font-size:12.5px;padding:8px 0">🎉 全部任务已完成</div>':''}
+      </div>
+    </div>`;
+}
+function vCard(w,myId){
+  const mine = ME.role==='student' && w.id===myId;
+  const rated = ME.role==='student' && (DATA.ratings[w.id]||{})[myId];
+  return `<div class="v-card">
+    <div class="thumb" onclick="location.hash='#/work/${w.id}'">
+      ${w.cover?`<img src="/api/file/${w.cover}" alt="">`:`<video src="/api/file/${w.file}" preload="metadata" muted></video>`}
+      ${mine?'<span class="badge-own">本组作品</span>':(w.avg!=null&&w.avg>=90?'<span class="badge-ex">优秀作品</span>':'')}
+      <div class="play-ov"><span class="play-c"></span></div>
+      ${w.avg!=null?`<span class="score-pill">★ ${disp(w.avg)}</span>`:''}
+    </div>
+    <div class="v-body">
+      <div class="v-title">${gNameOf(w.id)}｜${esc(w.title)}</div>
+      <div class="v-meta"><span>● ${w.views||0}次观看</span><span class="sp"></span>
+        ${mine?`<span class="g-tag green">我的小组</span>`:rated?`<a class="link" onclick="event.stopPropagation();location.hash='#/work/${w.id}'">已评 ✓ 修改</a>`:`<a class="link" onclick="event.stopPropagation();location.hash='#/work/${w.id}'">去评分</a>`}
+      </div>
+    </div>
   </div>`;
-  $('#sq').oninput=e=>{ squareQ=e.target.value; const v=e.target, pos=v.selectionStart; renderSquare(); const n=$('#sq'); n.focus(); n.setSelectionRange(pos,pos); };
-  $('#seg').querySelectorAll('button').forEach(b=>b.onclick=()=>{ squareTab=b.dataset.t; renderSquare(); });
 }
 
-/* ================= 上传作品 ================= */
-let upFile=null, upFrames=[], upCoverIdx=0, upMembers=[], upDuration=0;
-function renderUpload(){
-  const myId = ME.group;
-  const myWork = DATA.works[myId];
-  const received = workRatings(myId).length;
-  const avg = workAvg(myId);
-  const pct = Math.min(100, Math.round(received/7*100));
-  upFile=null; upFrames=[]; upCoverIdx=0; upDuration=0;
-  upMembers = myWork ? [...(myWork.members||[])] : [ME.name];
-  const gName = GROUPS.find(g=>g.id===myId)?.name;
+/* ================= 学生 · 视频广场 ================= */
+let galTab='all', galQ='', galPage=1;
+function renderGallery(){
+  const myId=ME.group;
+  const all=Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}));
+  const myRated = wid => !!(DATA.ratings[wid]||{})[myId];
+  let list=all.slice();
+  if(galTab==='unrated') list=list.filter(w=>w.id!==myId&&!myRated(w.id));
+  if(galTab==='rated') list=list.filter(w=>myRated(w.id));
+  if(galTab==='excellent') list=list.filter(w=>w.avg!=null&&w.avg>=90);
+  if(galQ){ const q=galQ.toLowerCase(); list=list.filter(w=>(w.title+gNameOf(w.id)).toLowerCase().includes(q)); }
+  list.sort((a,b)=>(b.avg??-1)-(a.avg??-1));
+  const per=8, pages=Math.max(1,Math.ceil(list.length/per));
+  galPage=Math.min(galPage,pages);
+  const pageList=list.slice((galPage-1)*per,galPage*per);
 
-  $('#view').innerHTML = `<div class="page">
-    <div class="pg-head"><div><h1>上传本组作品</h1><div class="sub">AI健康科普视频制作 · 每组提交一份视频成果</div></div></div>
-    <div class="upload-wrap">
-      <div class="panel">
-        <h2>上传本组视频成果</h2>
+  $('#view').innerHTML = crumb(`学生端 / <b>视频广场</b>`)+`
+    <div class="filter-bar">
+      <div class="search-box">🔍<input id="gq" placeholder="搜索视频标题或小组" value="${esc(galQ)}"></div>
+      <div class="seg" id="gseg">
+        <button data-t="all" class="${galTab==='all'?'active':''}">全部作品</button>
+        <button data-t="unrated" class="${galTab==='unrated'?'active':''}">待我评分</button>
+        <button data-t="rated" class="${galTab==='rated'?'active':''}">已评分</button>
+        <button data-t="excellent" class="${galTab==='excellent'?'active':''}">优秀作品</button>
+      </div>
+      <span style="flex:1"></span>
+      <select class="sel-mini" id="gTheme"><option>主题：全部</option></select>
+      <select class="sel-mini" id="gSort"><option>排序：综合评分</option><option>排序：最新提交</option></select>
+    </div>
+    ${all.length===0?`<div class="card"><div class="empty"><div class="e-icon">🎬</div><p>还没有小组上传作品</p><span>第一个上传的小组将出现在这里，快去「我的小组」上传本组作品吧</span></div></div>`
+    :pageList.length===0?`<div class="card"><div class="empty"><div class="e-icon">🔍</div><p>没有符合条件的作品</p><span>换个筛选条件或搜索词试试</span></div></div>`
+    :`<div class="v-grid">${pageList.map(w=>vCard(w,myId)).join('')}</div>
+      ${pages>1?`<div class="pgn">${Array.from({length:pages},(_,i)=>`<button class="${i+1===galPage?'active':''}" data-p="${i+1}">${i+1}</button>`).join('')}</div>`:''}
+      <div class="foot" style="padding-top:16px">学生端 · 共 ${list.length} 组作品 · 互评截止时间 2026-10-29 20:00</div>`}`;
+  $('#gq').oninput=e=>{ galQ=e.target.value; galPage=1; const v=e.target,pos=v.selectionStart; renderGallery(); const n=$('#gq'); n.focus(); n.setSelectionRange(pos,pos); };
+  $('#gseg').querySelectorAll('button').forEach(b=>b.onclick=()=>{ galTab=b.dataset.t; galPage=1; renderGallery(); });
+  document.querySelectorAll('.pgn button').forEach(b=>b.onclick=()=>{ galPage=+b.dataset.p; renderGallery(); window.scrollTo(0,0); });
+  $('#gTheme').onchange=()=>toast('主题筛选建设中');
+  $('#gSort').onchange=e=>{ if(e.target.selectedIndex===1){ galTab='all'; list=null; const l2=Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length})).sort((a,b)=>b.time-a.time); renderSortedList(l2); } };
+}
+function renderSortedList(list){
+  const myId=ME.group;
+  $('#view').innerHTML = crumb(`学生端 / <b>视频广场</b>`)+`
+    <div class="filter-bar">
+      <div class="search-box">🔍<input placeholder="搜索视频标题或小组" disabled></div>
+      <span style="flex:1"></span>
+      <select class="sel-mini" id="gSort2"><option>排序：最新提交</option><option>排序：综合评分</option></select>
+    </div>
+    <div class="v-grid">${list.map(w=>vCard(w,myId)).join('')}</div>`;
+  $('#gSort2').onchange=()=>{ renderGallery(); };
+}
+
+/* ================= 学生 · 排行榜 ================= */
+function renderRanking(){
+  const ranked=rankedWorks();
+  const myId=ME.group;
+  const t=[ranked[1],ranked[0],ranked[2]]; // 2 1 3 排列
+  $('#view').innerHTML = crumb(`学生端 / <b>排行榜</b>`)+`
+    ${ranked.length===0?`<div class="card"><div class="empty"><div class="e-icon">🏆</div><p>还没有作品上榜</p><span>作品获得其他小组评分后将自动上榜</span></div></div>`:`
+    <div class="top3-row">
+      ${[1,0,2].map(i=>ranked[i]?`
+        <div class="t3-card ${i===0?'first':''}" style="cursor:pointer" onclick="location.hash='#/work/${ranked[i].id}'">
+          <div class="mdl">${i===0?'🏆':i===1?'🥈':'🥉'}</div>
+          <div class="gn">${gNameOf(ranked[i].id)}</div>
+          <div class="wt">${esc(ranked[i].title)}${ranked[i].id===myId?' · 我的小组':''}</div>
+          <div class="sc">${disp(ranked[i].avg)}</div>
+        </div>`:'').join('')}
+    </div>
+    <div class="card">
+      <div style="display:flex;align-items:baseline;margin-bottom:8px"><h3 style="margin:0">完整排名</h3><span style="font-size:11.5px;color:var(--muted);margin-left:8px">根据同学互评平均分实时计算</span><span style="flex:1"></span><a class="link" onclick="toast('评分规则：五个维度各占 20%，取所有评分平均')">评分规则</a></div>
+      <table class="rank">
+        <thead><tr><th style="width:70px">排名</th><th>小组</th><th>作品名称</th><th>评分人数</th><th>互评平均分</th><th>排名变化</th></tr></thead>
+        <tbody>
+        ${ranked.map((w,i)=>`<tr onclick="location.hash='#/work/${w.id}'">
+          <td><span class="rk-n ${i<3?'n'+(i+1):''}">${i+1}</span></td>
+          <td><b>${gNameOf(w.id)}</b>${w.id===myId?'<span class="g-tag" style="margin-left:6px">我的小组</span>':''}</td>
+          <td>${esc(w.title)}</td>
+          <td>${w.rc} 人</td>
+          <td><span class="cell-score">${disp(w.avg)}</span></td>
+          <td><span class="chg flat">—</span></td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`}`;
+}
+
+/* ================= 学生 · 我的小组（上传/管理） ================= */
+let upFile=null, upFrames=[], upCoverIdx=0, upMembers=[], upDuration=0;
+function renderGroup(){
+  const myId=ME.group, gName=gNameOf(myId);
+  const myWork=DATA.works[myId];
+  upFile=null; upFrames=[]; upCoverIdx=0; upDuration=0;
+  upMembers=myWork?[...(myWork.members||[])]:[ME.name];
+
+  $('#view').innerHTML = crumb(`学生端 / <b>我的小组</b>`)+`
+    <div class="two-col">
+      <div class="card">
+        <h3>上传小组视频成果 <span style="font-size:11px;color:var(--muted);font-weight:600">提交后立即展示，支持随时修改或删除</span></h3>
         <div class="drop-zone" id="dz">
-          <div class="dz-icon">＋</div>
-          <p>将视频文件拖拽到此处，或点击选择文件</p>
-          <span>支持 MP4/MOV/AVI，最大 2GB</span>
+          <div class="dz-ic">📤</div>
+          <p>拖放视频文件到这里</p>
+          <span>支持 MP4 / MOV，单个文件不超过 2GB</span>
+          <div style="margin-top:14px"><button class="btn btn-blue btn-sm" type="button">选择视频文件</button></div>
           <div class="up-progress" id="upProg" style="display:none">
             <div class="fn"><span id="upName">--</span><span id="upPct">0%</span></div>
             <div class="fs" id="upSize">--</div>
@@ -522,34 +582,36 @@ function renderUpload(){
           <div class="f-label">选择封面</div>
           <div class="cover-row" id="coverRow"></div>
         </div>
-        <div class="f-grid">
-          <div><div class="f-label">作品标题</div><input class="f-input" id="fTitle" placeholder="如：城市水循环的秘密" value="${esc(myWork?myWork.title:'')}"></div>
-          <div><div class="f-label">所属小组</div><select class="f-select" disabled><option>${gName}</option></select></div>
-        </div>
+        <div class="f-block"><div class="f-label">作品名称</div><input class="f-input" id="fTitle" placeholder="如：绿色校园行动" value="${esc(myWork?myWork.title:'')}"></div>
+        <div class="f-block"><div class="f-label">所属小组</div><input class="f-input" value="${gName}" disabled></div>
         <div class="f-block"><div class="f-label">组员（回车添加）</div><div class="tag-input" id="memTags"></div></div>
-        <div class="form-actions">
-          <button class="btn btn-ghost" id="btnCancel">取消</button>
-          <button class="btn btn-blue" id="btnSubmit">${myWork?'重新提交（覆盖原作品）':'提交作品'}</button>
+        <button class="btn btn-blue" id="btnSubmit" style="width:170px">${myWork?'保存并重新发布':'保存并发布视频'}</button>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <h3>本组已发布视频 <span style="font-size:11px;color:var(--muted);font-weight:600">学生可自行管理</span></h3>
+          ${myWork?`
+            <div style="display:flex;align-items:center;gap:11px;background:#f7f9fe;border-radius:12px;padding:12px 14px;margin-bottom:12px;cursor:pointer" onclick="location.hash='#/work/${myId}'">
+              <span class="lg-ic" style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#5b8cff,#3d5af1);display:grid;place-items:center;color:#fff">${IC_PLAY}</span>
+              <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(myWork.title)}.mp4</div>
+              <div style="font-size:10.5px;color:var(--muted);margin-top:2px">发布于 ${fmtTime(myWork.time)}</div></div>
+              <span class="g-tag green">展示中</span>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:12px">
+              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="document.getElementById('fTitle').focus()">修改视频信息</button>
+              <button class="btn btn-red btn-sm" style="flex:1" onclick="delMyWork()">删除视频</button>
+            </div>
+            <div class="notice">删除后，其他学生将无法继续观看和评分；已有评分记录也会一并清除。</div>`
+          :`<div style="color:var(--muted);font-size:12.5px;padding:16px 0;text-align:center">📭 本组还没有发布视频<br><span style="font-size:11px">使用左侧表单上传第一份作品</span></div>`}
+        </div>
+        <div class="card">
+          <h3>最近修改记录</h3>
+          ${myWork?`
+            <div class="ver-item"><span class="ver-badge">v1</span><div><div style="font-size:12.5px;font-weight:700">${myWork.cover?'上传视频与封面':'上传视频'}</div><div style="font-size:10.5px;color:var(--muted);margin-top:2px">${fmtTime(myWork.time)}</div></div><span style="flex:1"></span><span class="g-tag">当前</span></div>`
+          :`<div style="color:var(--muted);font-size:12.5px;padding:10px 0">暂无记录</div>`}
         </div>
       </div>
-      <div class="panel ring-card">
-        <h2 style="text-align:left">本组提交状态</h2>
-        <div class="ring-wrap">
-          <svg width="128" height="128"><circle cx="64" cy="64" r="54" fill="none" stroke="#e8edf7" stroke-width="11"/>
-          <circle cx="64" cy="64" r="54" fill="none" stroke="url(#gr)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${2*Math.PI*54}" stroke-dashoffset="${2*Math.PI*54*(1-pct/100)}"/>
-          <defs><linearGradient id="gr"><stop offset="0" stop-color="#5f9dff"/><stop offset="1" stop-color="#34c46e"/></linearGradient></defs></svg>
-          <div class="ring-num">${myWork?pct:'0'}</div>
-        </div>
-        <span class="pill ${myWork?'review':'none'}">${myWork?'评审中':'未提交'}</span>
-        <div style="margin-top:14px;text-align:left">
-          <div class="kv">已收到评分 <b>${received} 条</b></div>
-          <div class="kv">当前平均分 <span class="score">${avg!=null?avg.toFixed(1):'--'}</span></div>
-        </div>
-        <div class="hint-line">ℹ️ 提交后不可修改小组信息，重新上传将覆盖原作品，请确认无误</div>
-        ${myWork?`<button class="btn btn-ghost" style="width:100%;margin-top:14px" onclick="location.hash='#/work/${myId}'">查看本组作品页</button>`:''}
-      </div>
-    </div>
-  </div>`;
+    </div>`;
 
   const dz=$('#dz'), fi=$('#fileInput');
   dz.onclick=()=>{ if(!uploading) fi.click(); };
@@ -557,10 +619,17 @@ function renderUpload(){
   dz.ondragleave=()=>dz.classList.remove('drag');
   dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag'); if(!uploading&&e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]);};
   fi.onchange=()=>{ if(fi.files[0]) pickFile(fi.files[0]); };
-
   renderMemTags();
-  $('#btnCancel').onclick=()=>{ upFile=null; renderUpload(); };
   $('#btnSubmit').onclick=submitWork;
+}
+async function delMyWork(){
+  if(!confirm('确定删除本组视频？\n其他学生将无法继续观看和评分，已有评分记录也会一并清除！')) return;
+  try{
+    const res=await fetch('/api/work/'+ME.group,{method:'DELETE'});
+    if(!res.ok) throw new Error();
+    toast('🗑️ 本组视频已删除');
+    await loadData(false); renderGroup();
+  }catch(e){ toast('删除失败，请重试'); }
 }
 function renderMemTags(){
   const box=$('#memTags'); if(!box) return;
@@ -574,7 +643,7 @@ async function pickFile(f){
   const ext=(f.name.split('.').pop()||'').toLowerCase();
   if(!['mp4','mov','avi'].includes(ext)) return toast('仅支持 MP4 / MOV / AVI 视频');
   if(f.size>2*1024*1024*1024) return toast('文件超过 2GB 上限');
-  const up=$('#upProg'); if(!up) return; // 必须在上传页
+  const up=$('#upProg'); if(!up) return;
   upFile=f;
   up.style.display='block';
   $('#upName').textContent=f.name; $('#upSize').textContent=(f.size/1024/1024).toFixed(0)+'MB';
@@ -618,9 +687,10 @@ function extractFrames(file){
 function dataURLtoBlob(d){ const [h,b]=d.split(','); const mime=h.match(/:(.*?);/)[1]; const bin=atob(b); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new Blob([arr],{type:mime}); }
 function submitWork(){
   if(uploading) return;
-  if(!upFile) return toast('请先选择视频文件');
+  if(!upFile && !DATA.works[ME.group]) return toast('请先选择视频文件');
   const title=$('#fTitle').value.trim();
-  if(!title) return toast('请填写作品标题');
+  if(!title) return toast('请填写作品名称');
+  if(!upFile) return toast('修改信息请同时重新选择视频文件');
   const fd=new FormData();
   fd.append('groupId',ME.group);
   fd.append('title',title);
@@ -634,7 +704,7 @@ function submitWork(){
   xhr.upload.onprogress=e=>{ if(e.lengthComputable){ const p=Math.round(e.loaded/e.total*100); $('#upBar').style.width=p+'%'; $('#upPct').textContent=p+'%'; } };
   xhr.onload=()=>{
     uploading=false;
-    if(xhr.status===200){ toast('✅ 作品提交成功'); upFile=null; loadData(false).then(()=>location.hash='#/square'); }
+    if(xhr.status===200){ toast('✅ 作品发布成功'); upFile=null; loadData(false).then(()=>location.hash='#/gallery'); }
     else{ let msg='上传失败'; try{msg=JSON.parse(xhr.responseText).error||msg;}catch(e){} toast('❌ '+msg); $('#upPct').textContent='上传失败'; }
   };
   xhr.onerror=()=>{ uploading=false; toast('❌ 网络错误，上传中断'); };
@@ -642,97 +712,105 @@ function submitWork(){
   xhr.send(fd);
 }
 
-/* ================= 作品详情 ================= */
+/* ================= 作品详情 / 评分 ================= */
 let dimSel={}, viewCounted=false;
 function renderWork(wid){
   const w=DATA.works[wid];
-  if(!w){ $('#view').innerHTML=`<div class="page"><div class="empty"><div class="e-icon">🎬</div><p>作品不存在或未上传</p><div style="margin-top:18px"><button class="btn btn-blue" onclick="history.back()">返回</button></div></div></div>`; return; }
+  if(!w){ $('#view').innerHTML=`<div class="card"><div class="empty"><div class="e-icon">🎬</div><p>作品不存在或已删除</p><div style="margin-top:16px"><button class="btn btn-blue" onclick="history.back()">返回</button></div></div></div>`; return; }
   const ranked=rankedWorks();
   const rankIdx=ranked.findIndex(x=>x.id===wid);
   const avg=workAvg(wid), rs=workRatings(wid).sort((a,b)=>b.time-a.time);
-  const gName=GROUPS.find(g=>g.id===wid)?.name||'';
+  const gName=gNameOf(wid);
   const isMine = ME.role==='student' && ME.group===wid;
   const myR = ME.role==='student' ? (DATA.ratings[wid]||{})[ME.group] : (DATA.ratings[wid]||{})['teacher'];
   viewCounted=false;
+  const dimAvgs = DIMS.map(([k])=> rs.length ? rs.reduce((a,r)=>a+r.dims[k],0)/rs.length : 0);
 
-  // 草稿/已有评分初始化（同一作品轮询重渲染时保留已选星级）
   const draft=JSON.parse(localStorage.getItem('draft_'+wid)||'null');
   const init = myR || draft;
   if(dimSel._wid!==wid){ dimSel={_wid:wid}; if(init&&init.dims) Object.assign(dimSel,init.dims); }
-
   const raterId = ME.role==='teacher'?'teacher':ME.group;
-  const raterName = ME.name;
 
-  $('#view').innerHTML = `<div class="page">
-    <div class="pg-head">
-      <div><h1>作品播放与评分详情</h1><div class="sub">${gName}</div></div>
-      <div class="sp"></div>
-      <button class="btn btn-ghost" onclick="history.back()">← 退回${ME.role==='teacher'?'排名榜':'视频广场'}</button>
-    </div>
+  $('#view').innerHTML = crumb(`${ME.role==='teacher'?'教师端 / 视频管理':'学生端 / 视频广场'} / <b>作品评分</b>`)+`
     <div class="detail-wrap">
       <div>
         <div class="player-box">
-          ${avg!=null&&avg>=90?'<span class="p-badge ex">优秀作品</span>':''}
-          ${rankIdx>=0?`<span class="p-badge rk">第${rankIdx+1}名</span>`:''}
-          <video id="player" controls preload="auto" playsinline webkit-playsinline ${w.cover?`poster="/api/file/${w.cover}"`:''} src="/api/file/${w.file}" onpause="console.warn('[VIDEO_PAUSE]',new Error().stack)"></video>
+          <video id="player" controls preload="auto" playsinline webkit-playsinline ${w.cover?`poster="/api/file/${w.cover}"`:''} src="/api/file/${w.file}"></video>
         </div>
-        <div class="panel info-panel">
-          <div class="info-head">
-            <h2>${esc(w.title)}</h2><span class="g-tag">${gName}</span>
-            <div style="text-align:right"><span class="big-score">${avg!=null?avg.toFixed(1):'--'}<small> 分</small></span></div>
-            <div class="rate-count">${starsHTML(avg,16)}<br>${rs.length} 人已评分 · ${w.views||0} 次观看</div>
-            <div class="info-actions">
-              <a class="btn btn-ghost" href="/api/file/${w.file}" download="${esc(w.title)}.mp4" style="text-decoration:none;display:inline-grid;place-items:center">下载</a>
-              ${ME.role==='teacher'?`<button class="btn ${w.featured?'btn-blue':'btn-ghost'}" id="btnFeature">${w.featured?'✓ 已推荐至首页':'推荐至首页'}</button>`:''}
-              <button class="btn btn-ghost" id="btnShare">分享</button>
+        <div class="card" style="margin-top:16px">
+          <h3 style="font-size:16px">${esc(w.title)}${rankIdx>=0?` <span class="g-tag">第${rankIdx+1}名</span>`:''}${avg!=null&&avg>=90?' <span class="badge-ex" style="position:static">优秀作品</span>':''}</h3>
+          <div style="font-size:11.5px;color:var(--muted);margin:6px 0 12px">${gName} · 上传于 ${fmtTime(w.time)} &nbsp;·&nbsp; 时长 ${fmtDur(w.duration)} &nbsp;·&nbsp; 已有 ${w.views||0} 人观看</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            ${(w.members||[]).map(m=>`<span class="mem-chips" style="margin:0"><span>${esc(m)}</span></span>`).join('')}
+          </div>
+          <div style="display:flex;gap:10px;margin-top:14px">
+            <a class="btn btn-ghost btn-sm" href="/api/file/${w.file}" download="${esc(w.title)}.mp4" style="text-decoration:none">下载视频</a>
+            <button class="btn btn-ghost btn-sm" id="btnShare">分享链接</button>
+            ${ME.role==='teacher'?`<button class="btn ${w.featured?'btn-blue':'btn-ghost'} btn-sm" id="btnFeature">${w.featured?'✓ 已推荐':'推荐至首页'}</button>`:''}
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>同学评价 <span style="font-size:11px;color:var(--muted);font-weight:600">${rs.length} 条</span></h3>
+          ${rs.length===0?'<div style="font-size:12.5px;color:var(--muted);padding:10px 0 4px">还没有评价，来抢沙发～</div>':''}
+          ${rs.map(r=>`<div class="comment-item">
+            ${avatar(r.raterName||r.rid)}
+            <div style="flex:1">
+              <div class="c-hd">${esc(r.raterName||r.rid)}<span class="g-tag">${r.rid==='teacher'?'教师':gNameOf(r.rid)}</span><span class="stars" style="font-size:12px">${'★'.repeat(Math.round(rateAvg(r)))}${'☆'.repeat(5-Math.round(rateAvg(r)))}</span><span class="tm">${fmtTime(r.time)}</span></div>
+              <div class="c-tx">${esc(r.comment||'（未填写评语）')}</div>
             </div>
-          </div>
-          <div class="mem-row">
-            ${(w.members||[]).map(m=>`<span class="m-item">${avatar(m)}${esc(m)}</span>`).join('')}
-          </div>
-          ${w.desc?`<div class="desc">${esc(w.desc)}</div>`:''}
-        </div>
-        <div class="panel" style="margin-top:20px">
-          <h2>同学评价 <span style="font-size:12px;color:var(--muted);font-weight:600">${rs.length} 条</span></h2>
-          <div id="commentList">
-            ${rs.length===0?'<div style="font-size:13px;color:var(--muted);padding:8px 0 4px">还没有评价，来抢沙发～</div>':''}
-            ${rs.map(r=>`<div class="comment-item">
-              ${avatar(r.raterName||r.rid)}
-              <div style="flex:1">
-                <div class="c-hd">${esc(r.raterName||r.rid)}<span class="g-tag">${r.rid==='teacher'?'教师':(GROUPS.find(g=>g.id===r.rid)?.name||'')}</span><span class="c-stars">${'★'.repeat(Math.round(rateAvg(r)))}${'☆'.repeat(5-Math.round(rateAvg(r)))}</span><span style="color:#f59e0b;font-weight:800">${rateAvg(r).toFixed(1)}星</span><span class="tm">${fmtTime(r.time)}</span></div>
-                <div class="c-tx">${esc(r.comment||'（未填写评语）')}</div>
-              </div>
-            </div>`).join('')}
-          </div>
+          </div>`).join('')}
         </div>
       </div>
       <div>
-        <div class="panel" id="ratePanel">
-          ${isMine
-            ? `<h2>本组作品</h2><div style="font-size:13px;color:var(--muted);line-height:1.8">这是你们组的作品，不能给自己打分哦。<br>已收到 <b style="color:var(--ink)">${rs.length}</b> 条评分，当前平均分 <b style="color:#22a35c;font-size:18px">${avg!=null?avg.toFixed(1):'--'}</b></div>`
-            : `<h2>我要评分</h2>
-            <div style="font-size:12px;color:var(--muted);margin:-8px 0 16px">从五个维度为作品打分${myR?'（你已评分，可修改）':''}</div>
-            ${DIMS.map(([k,lb])=>`<div class="dim-row"><span class="dl">${lb}</span><span class="dstars" data-k="${k}">${[1,2,3,4,5].map(i=>`<span data-v="${i}" class="${(dimSel[k]||0)>=i?'on':''}">★</span>`).join('')}</span></div>`).join('')}
-            <div class="f-label" style="margin-top:4px">评语</div>
-            <textarea class="f-area" id="fComment" placeholder="说说这个作品的亮点与建议…" style="min-height:96px">${esc((draft&&draft.comment)||(myR&&myR.comment)||'')}</textarea>
-            <div class="q-tags">${QUICK_TAGS.map(t=>`<button data-t="${t}">${t}</button>`).join('')}</div>
-            <div style="display:flex;gap:10px">
-              <button class="btn btn-blue" id="btnRate" style="flex:1">${myR?'修改评分':'提交评分'}</button>
-              <button class="btn btn-ghost" id="btnDraft">保存草稿</button>
-            </div>`}
+        ${isMine?`<div class="card">
+          <h3>本组作品</h3>
+          <div style="font-size:12.5px;color:var(--muted);line-height:1.9">这是你们组的作品，不能给自己打分哦。<br>已收到 <b style="color:var(--ink)">${rs.length}</b> 条评分，当前平均分 <b style="color:var(--blue-d);font-size:17px">${avg!=null?disp(avg):'--'}</b></div>
+        </div>`
+        :ME.role==='teacher'?`<div class="card">
+          <h3>视频信息 <span style="font-size:11px;color:var(--muted);font-weight:600">教师管理视图</span></h3>
+          <div style="font-size:12.5px;line-height:2.2">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">提交小组</span><b>${gName}</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">观看次数</span><b>${w.views||0} 次</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">参与评分</span><b>${rs.length} 人</b></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">当前得分</span><b style="color:var(--blue-d)">${avg!=null?disp(avg):'--'} 分</b></div>
+          </div>
+          <button class="btn btn-red" style="width:100%;margin-top:14px" onclick="delWork('${wid}','${esc(w.title)}')">删除该视频</button>
         </div>
+        <div class="card" style="margin-top:16px">
+          <h3>评分概况</h3>
+          <div style="margin-top:8px">${DIMS.map(([k,lb],i)=>`
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+              <span style="font-size:12px;color:#3a4358;width:64px">${lb}</span>
+              <span class="dim-bar"><i style="width:${dimAvgs[i]/5*100}%"></i></span>
+              <span class="dim-val">${dimAvgs[i]?dimAvgs[i].toFixed(1):'--'}</span>
+            </div>`).join('')}
+          </div>
+        </div>`
+        :`<div class="card">
+          <h3>为作品评分</h3>
+          <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">请根据以下维度客观评价，每项满分 5 分${myR?'（你已评分，可修改）':''}</div>
+          <div style="text-align:center;font-size:26px;letter-spacing:4px;margin-bottom:16px;color:#ffb61e" id="totalStars">${'★'.repeat(Math.round(Object.values(dimSel).filter(v=>typeof v==='number').reduce((a,b)=>a+b,0)/5)||0)}${'☆'.repeat(5-(Math.round(Object.values(dimSel).filter(v=>typeof v==='number').reduce((a,b)=>a+b,0)/5)||0))}</div>
+          ${DIMS.map(([k,lb])=>`<div class="dim-row"><span class="dl">${lb}</span><span class="dstars" data-k="${k}">${[1,2,3,4,5].map(i=>`<span data-v="${i}" class="${(dimSel[k]||0)>=i?'on':''}">★</span>`).join('')}</span><span class="dim-val" id="dv-${k}">${dimSel[k]?dimSel[k]+'.0':''}</span></div>`).join('')}
+          <div class="f-label" style="margin-top:8px">评价与建议</div>
+          <textarea class="f-area" id="fComment" placeholder="说说这个作品的亮点与建议…" style="min-height:90px">${esc((draft&&draft.comment)||(myR&&myR.comment)||'')}</textarea>
+          <div class="q-tags">${QUICK_TAGS.map(t=>`<button data-t="${t}">${t}</button>`).join('')}</div>
+          <button class="btn btn-blue" id="btnRate" style="width:100%">${myR?'修改评分':'提交评分'}</button>
+          <button class="btn btn-ghost" id="btnDraft" style="width:100%;margin-top:8px">保存草稿</button>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>评分规则</h3>
+          <div class="notice" style="background:#e9f9f1;color:#157a4e">✓ 每个小组只能提交一次评分，提交后可在截止前修改</div>
+        </div>`}
       </div>
-    </div>
-  </div>`;
+    </div>`;
 
   const player=$('#player');
   player.addEventListener('play',()=>{
     if(viewCounted) return; viewCounted=true;
     api('/api/view',{workId:wid}).then(j=>{ w.views=j.views; }).catch(()=>{});
-  },{once:false});
-
+  });
   $('#btnShare').onclick=async()=>{
-    try{ await navigator.clipboard.writeText(location.href); toast('🔗 链接已复制，分享给同学吧'); }
+    try{ await navigator.clipboard.writeText(location.href); toast('🔗 链接已复制'); }
     catch(e){ toast('复制失败，请手动复制地址栏链接'); }
   };
   const bf=$('#btnFeature');
@@ -740,13 +818,15 @@ function renderWork(wid){
     try{ const j=await api(`/api/work/${wid}/feature`,{featured:!w.featured}); w.featured=j.featured; toast(j.featured?'✅ 已推荐至首页':'已取消推荐'); renderWork(wid); }
     catch(e){ toast(e.message); }
   };
-
-  if(!isMine){
+  if(!isMine && ME.role==='student'){
+    const updTotal=()=>{ const vals=DIMS.map(([k])=>dimSel[k]||0); const avg=vals.reduce((a,b)=>a+b,0)/5; $('#totalStars').textContent='★'.repeat(Math.round(avg))+'☆'.repeat(5-Math.round(avg)); };
     document.querySelectorAll('.dstars').forEach(ds=>{
       ds.querySelectorAll('span').forEach(s=>s.onclick=()=>{
         const k=ds.dataset.k, v=+s.dataset.v;
         dimSel[k]=v;
         ds.querySelectorAll('span').forEach(x=>x.classList.toggle('on',+x.dataset.v<=v));
+        $('#dv-'+k).textContent=v+'.0';
+        updTotal();
       });
     });
     document.querySelectorAll('.q-tags button').forEach(b=>b.onclick=()=>{
@@ -763,7 +843,7 @@ function renderWork(wid){
       const tags=QUICK_TAGS.filter(t=>$('#fComment').value.includes(t));
       const {_wid,...dims}=dimSel;
       try{
-        await api('/api/rate',{workId:wid,raterId,raterName,dims,comment:$('#fComment').value,tags});
+        await api('/api/rate',{workId:wid,raterId,raterName:ME.name,dims,comment:$('#fComment').value,tags});
         localStorage.removeItem('draft_'+wid);
         toast('✅ 评分提交成功');
         await loadData(false); renderWork(wid);
@@ -771,137 +851,251 @@ function renderWork(wid){
     };
   }
 }
-
-/* ================= 我的评分（学生） ================= */
-function renderMy(){
-  const myId=ME.group;
-  const items=[];
-  for(const [wid,map] of Object.entries(DATA.ratings))
-    if(map[myId]&&DATA.works[wid]) items.push({wid,w:DATA.works[wid],r:map[myId]});
-  items.sort((a,b)=>b.r.time-a.r.time);
-  $('#view').innerHTML=`<div class="page">
-    <div class="pg-head"><div><h1>我的评分</h1><div class="sub">我参与互评的 ${items.length} 份作品</div></div></div>
-    ${items.length===0?`<div class="empty"><div class="e-icon">⭐</div><p>还没有评分记录</p><span>去视频广场为其他小组的作品打分吧</span><div style="margin-top:20px"><button class="btn btn-blue" onclick="location.hash='#/square'">去评分</button></div></div>`
-    :items.map(({wid,w,r})=>`<div class="my-rate-item" onclick="location.hash='#/work/${wid}'">
-        ${avatar(GROUPS.find(g=>g.id===wid)?.name||wid,'av-36')}
-        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${esc(w.title)}</div>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:3px">${GROUPS.find(g=>g.id===wid)?.name||''} · ${fmtTime(r.time)}</div></div>
-        <div style="text-align:right">${starsHTML(rateScore(r),16)}<div style="font-size:11px;color:var(--muted);margin-top:3px">我的评分 ${rateScore(r).toFixed(0)} 分</div></div>
-      </div>`).join('')}
-  </div>`;
-}
-
-/* ================= 教师看板 ================= */
-let teacherTimer=null;
 async function delWork(id,name){
   if(!confirm(`确定删除「${name}」？\n视频、封面与全部评分将被清除，且不可恢复！`)) return;
   try{
     const res=await fetch('/api/work/'+id,{method:'DELETE'});
     if(!res.ok) throw new Error();
     toast('🗑️ 作品已删除');
-    await loadData(false); renderTeacher();
+    await loadData(false); location.hash='#/teacher/videos';
   }catch(e){ toast('删除失败，请重试'); }
 }
-function renderTeacher(asSquare){
+
+/* ================= 教师 · 工作台 ================= */
+let teacherTimer=null;
+function startTeacherTimer(){
   clearInterval(teacherTimer);
-  const works=Object.entries(DATA.works).map(([id,w])=>({id,...w}));
+  teacherTimer=setInterval(()=>{
+    if(!location.hash.startsWith('#/teacher')||!ME||ME.role!=='teacher'){ clearInterval(teacherTimer); return; }
+    loadData();
+  },4000);
+}
+function renderTHome(){
+  startTeacherTimer();
+  const works=Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}));
+  const ranked=rankedWorks();
+  const totalRatings=Object.values(DATA.ratings).reduce((a,m)=>a+Object.keys(m).length,0);
+  const submitted=works.length;
+  const groupsDone=GROUPS.filter(g=>DATA.works[g.id] && works.every(w=>w.id===g.id||(DATA.ratings[w.id]||{})[g.id])).length;
+  const completion=GROUPS.length?Math.round(groupsDone/GROUPS.length*100):0;
+  const latest=works.slice().sort((a,b)=>b.time-a.time).slice(0,3);
+  const todayStart=new Date(); todayStart.setHours(0,0,0,0);
+  const todayNew=works.filter(w=>w.time>=todayStart.getTime()).length;
+  const feed=[];
+  latest.slice(0,3).forEach(w=>feed.push({c:'#4a6cf7',t:`${gNameOf(w.id)} 发布了新视频`,tm:w.time}));
+  const recentRates=[];
+  Object.entries(DATA.ratings).forEach(([wid,m])=>Object.entries(m).forEach(([rid,r])=>{ if(DATA.works[wid]) recentRates.push({rid,tm:r.time}); }));
+  recentRates.sort((a,b)=>b.tm-a.tm);
+  const doneGroups=[...new Set(recentRates.map(r=>r.rid))].slice(0,2);
+  doneGroups.forEach(rid=>{ const r=recentRates.find(x=>x.rid===rid); feed.push({c:'#22a35c',t:`${gNameOf(rid)} 完成了互评`,tm:r.tm}); });
+  feed.sort((a,b)=>b.tm-a.tm);
+
+  $('#view').innerHTML = `
+    <div class="banner green">
+      <h2>${esc(ME.name)}，${new Date().getHours()<12?'上午好':new Date().getHours()<18?'下午好':'晚上好'}</h2>
+      <p>${COURSE} · 本轮视频互评正在进行中。</p>
+      <div class="tags"><span>互评截止：2026-10-29 20:00</span><span>当前完成率 ${completion}%</span></div>
+      <button class="bn-btn" id="bnExport">导出成绩报告</button>
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><span class="ic" style="background:var(--blue-l)">👥</span><div><div class="lb">班级小组</div><div class="vl">${GROUPS.length}<small> 全部已建组</small></div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#e6f7f0">🎬</span><div><div class="lb">已提交视频</div><div class="vl">${submitted}<small> ${GROUPS.length-submitted} 组未提交</small></div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#fff7e8">📥</span><div><div class="lb">今日新增</div><div class="vl">${todayNew}<small> 份作品</small></div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#f3efff">📈</span><div><div class="lb">互评完成率</div><div class="vl">${completion}<small>%</small></div></div></div>
+    </div>
+    <div class="two-col" style="grid-template-columns:1.9fr 1fr">
+      <div class="card">
+        <div style="display:flex;align-items:baseline;margin-bottom:14px"><h3 style="margin:0">最近提交的视频</h3><span style="font-size:11.5px;color:var(--muted);margin-left:8px">学生提交后会直接进入视频广场</span><span style="flex:1"></span><a class="link" onclick="location.hash='#/teacher/videos'">进入视频管理 →</a></div>
+        ${latest.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:22px 0">还没有小组提交视频</div>`
+        :latest.map(w=>`
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f3f5fa">
+            <div style="width:56px;height:36px;border-radius:8px;overflow:hidden;background:#e8ecf4;flex-shrink:0">${w.cover?`<img src="/api/file/${w.cover}" style="width:100%;height:100%;object-fit:cover">`:''}</div>
+            <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${gNameOf(w.id)}</div><div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(w.title)} · ${fmtDay(w.time)}</div></div>
+            <button class="btn btn-ghost btn-sm" onclick="location.hash='#/work/${w.id}'">查看</button>
+            <button class="btn btn-red btn-sm" onclick="delWork('${w.id}','${esc(w.title)}')">删除</button>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <h3>班级动态</h3>
+        <div style="margin-top:10px">
+        ${feed.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:18px 0">暂无动态</div>`
+        :feed.slice(0,6).map(f=>`<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #f3f5fa;font-size:12.5px"><span style="color:${f.c}">●</span><div><b>${f.t}</b><div style="font-size:10.5px;color:var(--muted);margin-top:2px">${fmtDay(f.tm)}</div></div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <h3>提交进度 <span style="font-size:11px;color:var(--muted);font-weight:600">${GROUPS.length} 个小组的当前状态</span></h3>
+      <table class="rank" style="margin-top:8px">
+        <thead><tr><th>小组</th><th>组长</th><th>作品名称</th><th>提交状态</th><th>互评进度</th><th>当前排名</th></tr></thead>
+        <tbody>
+        ${GROUPS.map(g=>{
+          const w=DATA.works[g.id];
+          const leader=w&&w.members&&w.members[0]?w.members[0]:'—';
+          const need=works.filter(x=>x.id!==g.id).length;
+          const done=works.filter(x=>x.id!==g.id&&(DATA.ratings[x.id]||{})[g.id]).length;
+          const pct=need?Math.round(done/need*100):(w?100:0);
+          const rIdx=ranked.findIndex(x=>x.id===g.id);
+          return `<tr ${w?`onclick="location.hash='#/work/${g.id}'"`:''}>
+            <td><b>${g.name}</b></td>
+            <td>${esc(leader)}</td>
+            <td>${w?esc(w.title):'—'}</td>
+            <td>${w?'<span class="g-tag green">已提交</span>':'<span class="g-tag" style="color:#b57708;background:#fdf3e0">未提交</span>'}</td>
+            <td>${w?pct+'%':'0%'}</td>
+            <td>${rIdx>=0?'第'+(rIdx+1)+'名':'<span style="color:var(--muted)">暂无排名</span>'}</td>
+          </tr>`;}).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  $('#bnExport').onclick=exportCSV;
+}
+function exportCSV(){
+  const ranked=rankedWorks();
+  if(ranked.length===0) return toast('暂无数据可导出');
+  let csv='﻿排名,小组,作品名称,平均分(5分制),评分人次,观看数\n';
+  ranked.forEach((w,i)=>{ csv+=`${i+1},${gNameOf(w.id)},"${w.title.replace(/"/g,'""')}",${disp(w.avg)},${w.rc},${w.views||0}\n`; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=COURSE+'-成绩报告.csv'; a.click();
+  toast('📄 成绩报告已导出');
+}
+
+/* ================= 教师 · 视频管理 ================= */
+let tvQ='';
+function renderTVideos(){
+  startTeacherTimer();
+  const works=Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}));
+  let list=works.slice().sort((a,b)=>b.time-a.time);
+  if(tvQ){ const q=tvQ.toLowerCase(); list=list.filter(w=>(w.title+gNameOf(w.id)).toLowerCase().includes(q)); }
+  const todayStart=new Date(); todayStart.setHours(0,0,0,0);
+  const todayNew=works.filter(w=>w.time>=todayStart.getTime()).length;
+  const high=works.filter(w=>w.avg!=null&&w.avg>=90).length;
+
+  $('#view').innerHTML = crumb(`教师端 / <b>视频管理</b>`)+`
+    <div class="filter-bar">
+      <div class="search-box">🔍<input id="tvq" placeholder="搜索小组或视频标题" value="${esc(tvQ)}"></div>
+      <div class="seg"><button class="active">全部视频 ${works.length}</button><button onclick="toast('按今日新增筛选建设中')">今日新增 ${todayNew}</button><button onclick="toast('高分作品筛选建设中')">高分作品 ${high}</button></div>
+    </div>
+    <div class="card">
+      <h3>学生提交视频 <span style="font-size:11px;color:var(--muted);font-weight:600">学生可自行修改和删除；教师可查看或删除不合适的内容</span></h3>
+      ${list.length===0?`<div class="empty" style="padding:34px"><div class="e-icon">📭</div><p>还没有小组提交视频</p></div>`
+      :`<table class="rank" style="margin-top:8px">
+        <thead><tr><th>小组</th><th>视频信息</th><th>发布时间</th><th>观看次数</th><th>评分人数</th><th>综合得分</th><th style="width:130px">操作</th></tr></thead>
+        <tbody>
+        ${list.map(w=>`<tr>
+          <td><b>${gNameOf(w.id)}</b></td>
+          <td><div style="font-weight:700">${esc(w.title)}</div><div style="font-size:10.5px;color:var(--muted)">时长 ${fmtDur(w.duration)}</div></td>
+          <td>${fmtDay(w.time)}</td>
+          <td>${w.views||0}</td>
+          <td>${w.rc}</td>
+          <td>${w.avg!=null?`<span class="cell-score">${disp(w.avg)}</span>`:'<span style="color:var(--muted)">--</span>'}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="location.hash='#/work/${w.id}'">查看</button>
+              <button class="btn btn-red btn-sm" onclick="delWork('${w.id}','${esc(w.title)}')">删除</button></td>
+        </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>
+    <div class="notice" style="margin-top:14px">⚠️ 删除视频操作不可撤销，相关评分和排行榜数据将同步清除，请谨慎操作。</div>`;
+  $('#tvq').oninput=e=>{ tvQ=e.target.value; const v=e.target,pos=v.selectionStart; renderTVideos(); const n=$('#tvq'); n.focus(); n.setSelectionRange(pos,pos); };
+}
+
+/* ================= 教师 · 小组管理 ================= */
+function renderTGroups(){
+  startTeacherTimer();
+  $('#view').innerHTML = crumb(`教师端 / <b>小组管理</b>`)+`
+    <div class="filter-bar">
+      <div class="search-box">🔍<input placeholder="搜索学生姓名或小组" disabled></div>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;color:var(--muted)">共 ${GROUPS.length} 个小组</span>
+    </div>
+    <div class="g-grid">
+      ${GROUPS.map((g,i)=>{
+        const w=DATA.works[g.id];
+        const members=w?(w.members||[]):[];
+        return `<div class="g-card">
+          <div style="display:flex;align-items:baseline;gap:10px"><span class="num">${String(i+1).padStart(2,'0')}</span><div><div class="gname">${g.name}</div><div class="leader">组长：${members[0]?esc(members[0]):'—'}</div></div></div>
+          <div class="wtitle">${w?esc(w.title):'暂未提交视频'}</div>
+          <div class="mem-chips">${members.length?members.map(m=>`<span>${esc(m)}</span>`).join(''):'<span>暂无成员信息</span>'}</div>
+          <div class="g-foot">
+            ${w?'<span class="st-ok">已提交</span>':'<span class="st-no">未提交</span>'}
+            ${w?`<a class="link" onclick="location.hash='#/work/${g.id}'">查看小组 →</a>`:`<a class="link" onclick="toast('📢 已提醒 ${g.name} 尽快提交')">提醒提交</a>`}
+          </div>
+        </div>`;}).join('')}
+    </div>`;
+}
+
+/* ================= 教师 · 成绩分析 ================= */
+function renderTAnalytics(){
+  startTeacherTimer();
   const ranked=rankedWorks();
   const allAvgs=ranked.map(w=>w.avg);
   const classAvg=allAvgs.length?allAvgs.reduce((a,b)=>a+b,0)/allAvgs.length:null;
   const totalRatings=Object.values(DATA.ratings).reduce((a,m)=>a+Object.keys(m).length,0);
-  const completion=works.length?Math.min(100,Math.round(totalRatings/(works.length*7)*100)):0;
-  // 未完成互评的小组：未上传 或 未给其他所有作品评分
-  const incomplete=GROUPS.filter(g=>{
-    if(!DATA.works[g.id]) return true;
-    return works.some(w=>w.id!==g.id&&!(DATA.ratings[w.id]||{})[g.id]);
-  });
-  const top3=ranked.slice(0,3);
-  let feats=works.filter(w=>w.featured&&workAvg(w.id)!=null);
-  if(feats.length===0) feats=ranked.slice(0,2);
-  feats=feats.slice(0,2);
+  const works=Object.entries(DATA.works).map(([id,w])=>({id,...w}));
+  const groupsDone=GROUPS.filter(g=>DATA.works[g.id] && works.every(w=>w.id===g.id||(DATA.ratings[w.id]||{})[g.id]));
+  const doing=GROUPS.filter(g=>DATA.works[g.id] && !groupsDone.includes(g));
+  const notStart=GROUPS.filter(g=>!DATA.works[g.id]);
+  const total=GROUPS.length;
+  const pDone=Math.round(groupsDone.length/total*100), pDoing=Math.round(doing.length/total*100), pNot=100-pDone-pDoing;
+  const maxAvg=ranked.length?ranked[0]:null;
+  const max5=maxAvg?maxAvg.avg/20:0;
+  // 环形图角度
+  const c=2*Math.PI*54;
+  const aDone=pDone/100*c, aDoing=pDoing/100*c;
 
-  $('#view').innerHTML=`<div class="page">
-    <div class="pg-head">
-      <div><h1>AI健康科普视频制作 · 小组视频成果排名榜</h1><div class="sub">高二（3）班 · 共 8 个小组</div></div>
-      <div class="sp"></div>
-      <select class="f-select" style="width:130px" id="unitSel"><option>本单元</option><option>第1单元</option><option>第2单元</option><option>第3单元</option></select>
-      <button class="btn btn-blue" id="btnExport">导出榜单</button>
-    </div>
+  $('#view').innerHTML = crumb(`教师端 / <b>成绩分析</b>`)+`
     <div class="stat-row">
-      <div class="stat-card"><span class="ic" style="background:#eef4ff">👥</span><div><div class="lb">参与小组</div><div class="vl">${works.length}<small>/8</small></div><div class="delta">较上期 ↑</div></div></div>
-      <div class="stat-card"><span class="ic" style="background:#eef9f1">🎬</span><div><div class="lb">作品总数</div><div class="vl">${works.length}</div><div class="delta">较上期 ↑</div></div></div>
-      <div class="stat-card"><span class="ic" style="background:#fff7e8">🏆</span><div><div class="lb">互评完成率</div><div class="vl">${completion}<small>%</small></div><div class="delta">较上期 ↑</div></div></div>
-      <div class="stat-card"><span class="ic" style="background:#f3efff">📈</span><div><div class="lb">班级平均分</div><div class="vl">${classAvg!=null?classAvg.toFixed(1):'--'}</div><div class="delta">较上期 ↑</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:var(--blue-l)">⭐</span><div><div class="lb">班级平均分</div><div class="vl">${classAvg!=null?disp(classAvg):'--'}</div><div class="ex">满分 5 分</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#e6f7f0">✅</span><div><div class="lb">有效评分</div><div class="vl">${totalRatings}</div><div class="ex">条互评记录</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#fff7e8">👥</span><div><div class="lb">完成互评小组</div><div class="vl">${groupsDone.length}/${total}</div><div class="ex">${doing.length} 组进行中</div></div></div>
+      <div class="stat-card"><span class="ic" style="background:#f3efff">🏆</span><div><div class="lb">最高互评分</div><div class="vl">${maxAvg?disp(maxAvg.avg):'--'}</div><div class="ex">${maxAvg?gNameOf(maxAvg.id):''}</div></div></div>
     </div>
-    <div class="board-grid">
-      <div class="panel">
-        <div style="display:flex;align-items:center;margin-bottom:14px"><h2 style="margin:0">完整排行榜</h2><span style="flex:1"></span><button class="btn btn-ghost" style="padding:7px 16px;font-size:12px" onclick="location.hash='#/square'">查看作品</button></div>
-        ${ranked.length===0?`<div style="text-align:center;color:var(--muted);font-size:13px;padding:44px 0">📭 尚无作品获得评分<br><span style="font-size:11.5px">作品被其他小组评分后将自动上榜</span></div>`
-        :`<table class="rank">
-          <thead><tr><th style="width:56px">排名</th><th>小组</th><th>作品名称</th><th>平均分</th><th>评分人次</th><th>趋势</th><th style="width:64px">操作</th></tr></thead>
-          <tbody>
-          ${ranked.map((w,i)=>{
-            const gName=GROUPS.find(g=>g.id===w.id)?.name||w.id;
-            const rs=workRatings(w.id).sort((a,b)=>a.time-b.time);
-            const spark=rs.map(r=>{const s=rateScore(r);return `<i style="height:${Math.max(4,Math.round(s/100*26))}px;${s<60?'background:#e3e8f2':''}"></i>`;}).join('');
-            const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':null;
-            return `<tr class="${i<3?'r'+(i+1):''}" onclick="location.hash='#/work/${w.id}'">
-              <td>${medal?`<span class="rk-medal">${medal}</span>`:`<span class="rk-num">${i+1}</span>`}</td>
-              <td><div style="display:flex;align-items:center;gap:8px">${avatar(gName,'av-30')}<b>${gName}</b></div></td>
-              <td>${esc(w.title)}</td>
-              <td><span class="cell-score ${i===0?'s1':i===1?'s2':i===2?'s3':''}">${w.avg.toFixed(1)}</span></td>
-              <td>${w.rc}人已评<div class="cell-sub">${w.views||0} 次观看</div></td>
-              <td><div class="spark">${spark||'<span class="cell-sub">—</span>'}</div></td>
-              <td><button class="btn btn-ghost" style="padding:4px 10px;font-size:12px;color:#e5484d" onclick="event.stopPropagation();delWork('${w.id}','${esc(w.title)}')">删除</button></td>
-            </tr>`;}).join('')}
-          </tbody>
-        </table>`}
+    <div class="two-col" style="grid-template-columns:1.6fr 1fr">
+      <div class="card">
+        <h3>各组互评得分 <span style="font-size:11px;color:var(--muted);font-weight:600">按学生互评平均分统计（5 分制）</span></h3>
+        ${ranked.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:40px 0;text-align:center">暂无评分数据</div>`
+        :`<div class="chart-bars">${GROUPS.map(g=>{
+            const a=workAvg(g.id);
+            return `<div class="cb"><i style="height:${a!=null?Math.max(6,a/100*150):4}px;${a==null?'background:#e8ecf4':''}"></i><span>${g.name.replace('第','').replace('组','')}</span></div>`;}).join('')}
+        </div>`}
       </div>
-      <div>
-        <div class="panel podium">
-          <h2 style="text-align:left">前三名领奖台</h2>
-          ${top3.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:26px 0">暂无上榜小组</div>`:`
-          <div class="pod-stage">
-            ${top3[1]?`<div class="pod-item pod-2">${avatar(GROUPS.find(g=>g.id===top3[1].id)?.name||'','av-36')}<div class="pod-box">2</div><div class="pod-g">${GROUPS.find(g=>g.id===top3[1].id)?.name||''}</div><div class="pod-s" style="color:#8a93a6">${top3[1].avg.toFixed(1)}</div></div>`:''}
-            ${top3[0]?`<div class="pod-item pod-1"><div class="crown">👑</div>${avatar(GROUPS.find(g=>g.id===top3[0].id)?.name||'','av-36')}<span class="best-tag">本单元最佳</span><div class="pod-box">1</div><div class="pod-g">${GROUPS.find(g=>g.id===top3[0].id)?.name||''}</div><div class="pod-s">${top3[0].avg.toFixed(1)}</div></div>`:''}
-            ${top3[2]?`<div class="pod-item pod-3">${avatar(GROUPS.find(g=>g.id===top3[2].id)?.name||'','av-36')}<div class="pod-box">3</div><div class="pod-g">${GROUPS.find(g=>g.id===top3[2].id)?.name||''}</div><div class="pod-s" style="color:#cf8851">${top3[2].avg.toFixed(1)}</div></div>`:''}
-          </div>`}
-        </div>
-        <div class="panel" style="margin-top:20px">
-          <h2>优秀作品</h2>
-          ${feats.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:14px 0">暂无优秀作品</div>`:feats.map(w=>`
-            <div class="feat-card" onclick="location.hash='#/work/${w.id}'">
-              <div class="feat-thumb">${w.cover?`<img src="/api/file/${w.cover}">`:''}<span class="fp">▶</span><span class="feat-rec">推荐至全校</span></div>
-              <div><div class="ft">${esc(w.title)}</div><div class="fv">${w.views||0} 观看 · ${workAvg(w.id)?.toFixed(1)} 分</div></div>
-            </div>`).join('')}
+      <div class="card">
+        <h3>互评完成情况</h3>
+        <div class="donut-wrap" style="margin-top:12px">
+          <svg width="128" height="128">
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#eef1f7" stroke-width="14"/>
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#4a6cf7" stroke-width="14" stroke-dasharray="${aDone} ${c}" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#34c46e" stroke-width="14" stroke-dasharray="${aDoing} ${c}" stroke-dashoffset="${-aDone}" transform="rotate(-90 64 64)"/>
+            <text x="64" y="70" text-anchor="middle" font-size="20" font-weight="800" fill="#1f2430">${pDone}%</text>
+          </svg>
+          <div class="legend">
+            <div><i style="background:#4a6cf7"></i>已完成 ${pDone}%</div>
+            <div><i style="background:#34c46e"></i>进行中 ${pDoing}%</div>
+            <div><i style="background:#eef1f7"></i>未开始 ${pNot}%</div>
+          </div>
         </div>
       </div>
     </div>
-    ${incomplete.length?`<div class="warn-bar">⚠️ ${incomplete.length} 个小组未完成互评（${incomplete.map(g=>g.name).join('、')}）<button class="btn btn-blue" id="btnRemind">一键提醒</button></div>`:''}
-  </div>`;
-
-  $('#unitSel').onchange=()=>toast('其他单元数据建设中');
-  $('#btnExport').onclick=()=>{
-    if(ranked.length===0) return toast('暂无数据可导出');
-    let csv='﻿排名,小组,作品名称,平均分,评分人次,观看数\n';
-    ranked.forEach((w,i)=>{ csv+=`${i+1},${GROUPS.find(g=>g.id===w.id)?.name||w.id},"${w.title.replace(/"/g,'""')}",${w.avg.toFixed(1)},${w.rc},${w.views||0}\n`; });
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-    a.download='AI健康科普视频制作-排名榜.csv'; a.click();
-    toast('📄 榜单已导出');
-  };
-  const br=$('#btnRemind');
-  if(br) br.onclick=()=>toast(`📢 已提醒 ${incomplete.length} 个小组尽快完成互评`);
-
-  /* 实时刷新：每 4 秒拉取最新数据并重渲染看板 */
-  teacherTimer=setInterval(()=>{
-    if(location.hash!=='#/teacher'||!ME||ME.role!=='teacher'){ clearInterval(teacherTimer); return; }
-    loadData();
-  },4000);
+    <div class="card" style="margin-top:18px">
+      <div style="display:flex;align-items:baseline;margin-bottom:8px"><h3 style="margin:0">互评成绩明细</h3><span style="flex:1"></span><a class="link" onclick="exportCSV()">导出 Excel</a></div>
+      ${ranked.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:26px 0;text-align:center">暂无数据</div>`
+      :`<table class="rank">
+        <thead><tr><th style="width:70px">排名</th><th>小组</th><th>作品</th><th>有效评分人数</th><th>互评平均分</th><th>操作</th></tr></thead>
+        <tbody>
+        ${ranked.map((w,i)=>`<tr>
+          <td><span class="rk-n ${i<3?'n'+(i+1):''}">${i+1}</span></td>
+          <td><b>${gNameOf(w.id)}</b></td>
+          <td>${esc(w.title)}</td>
+          <td>${w.rc} 人</td>
+          <td><span class="cell-score">${disp(w.avg)}</span></td>
+          <td><a class="link" onclick="location.hash='#/work/${w.id}'">查看详情</a></td>
+        </tr>`).join('')}
+        </tbody>
+      </table>`}
+    </div>`;
 }
 
 /* ================= 启动 ================= */
-window.addEventListener('hashchange', ()=>{ loadData(); renderRoute(); });
+window.addEventListener('hashchange', ()=>{ loadData(false); renderRoute(); });
 renderApp();
 loadData();
 </script>
