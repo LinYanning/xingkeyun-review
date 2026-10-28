@@ -244,6 +244,7 @@ const COURSE = 'AI健康科普视频制作';
 
 let DATA = { works:{}, ratings:{} };
 let ME = JSON.parse(localStorage.getItem('xkj_identity') || 'null');
+if(ME && ME.role==='teacher'){ ME.name='林老师'; localStorage.setItem('xkj_identity',JSON.stringify(ME)); }
 let uploading = false;
 
 const $ = s => document.querySelector(s);
@@ -326,7 +327,7 @@ function openIdentityModal(){
       ME={role:'student',name:gNameOf(group),group};
     }else{
       if(m.querySelector('#idPin').value!==TEACHER_PIN) return toast('教师口令错误');
-      ME={role:'teacher',name:'王老师'};
+      ME={role:'teacher',name:'林老师'};
     }
     localStorage.setItem('xkj_identity',JSON.stringify(ME));
     m.remove(); location.hash = ME.role==='teacher' ? '#/teacher' : '#/home';
@@ -676,20 +677,22 @@ function submitWork(){
   if(!upFile && !DATA.works[ME.group]) return toast('请先选择视频文件');
   const title=$('#fTitle').value.trim();
   if(!title) return toast('请填写作品名称');
-  if(!upFile) return toast('修改信息请同时重新选择视频文件');
+  const onlyUpdateTitle = !upFile && DATA.works[ME.group];
   const fd=new FormData();
   fd.append('groupId',ME.group);
   fd.append('title',title);
-  fd.append('duration',upDuration);
-  fd.append('video',upFile);
-  if(upFrames[upCoverIdx]) fd.append('cover',dataURLtoBlob(upFrames[upCoverIdx]),'cover.jpg');
+  if(upFile){
+    fd.append('duration',upDuration);
+    fd.append('video',upFile);
+    if(upFrames[upCoverIdx]) fd.append('cover',dataURLtoBlob(upFrames[upCoverIdx]),'cover.jpg');
+  }
   uploading=true;
   const xhr=new XMLHttpRequest();
   xhr.open('POST','/api/upload');
   xhr.upload.onprogress=e=>{ if(e.lengthComputable){ const p=Math.round(e.loaded/e.total*100); $('#upBar').style.width=p+'%'; $('#upPct').textContent=p+'%'; } };
   xhr.onload=()=>{
     uploading=false;
-    if(xhr.status===200){ toast('✅ 作品发布成功'); upFile=null; loadData(false).then(()=>location.hash='#/gallery'); }
+    if(xhr.status===200){ toast(onlyUpdateTitle?'✅ 名称已更新':'✅ 作品发布成功'); upFile=null; loadData(false).then(()=>renderGroup()); }
     else{ let msg='上传失败'; try{msg=JSON.parse(xhr.responseText).error||msg;}catch(e){} toast('❌ '+msg); $('#upPct').textContent='上传失败'; }
   };
   xhr.onerror=()=>{ uploading=false; toast('❌ 网络错误，上传中断'); };

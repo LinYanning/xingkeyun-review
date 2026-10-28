@@ -50,24 +50,25 @@ app.use(express.static(ROOT)); // 托管 index.html
 
 /* 上传本组作品（视频 + 封面 + 元数据）；重新上传会替换旧文件 */
 app.post('/api/upload', upload.fields([{ name: 'video', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), (req, res) => {
-  const { groupId, title, desc, subject, members, duration } = req.body;
+  const { groupId, title, duration } = req.body;
   const video = req.files && req.files.video && req.files.video[0];
   const cover = req.files && req.files.cover && req.files.cover[0];
-  if (!groupId || !video) return res.status(400).json({ error: '参数不完整' });
+  if (!groupId) return res.status(400).json({ error: '参数不完整' });
   const data = loadData();
   const old = data.works[groupId];
-  if (old) {
+  if (!video && !old) return res.status(400).json({ error: '请上传视频文件' });
+  if (video && old) {
     fs.promises.unlink(path.join(UPLOAD_DIR, old.file)).catch(() => {});
     if (old.cover) fs.promises.unlink(path.join(UPLOAD_DIR, old.cover)).catch(() => {});
   }
   data.works[groupId] = {
     title: (title || '').trim() || '未命名作品',
-    desc: (desc || '').trim(),
-    subject: (subject || '').trim(),
-    members: (members || '').split(/[,，]/).map(s => s.trim()).filter(Boolean),
-    file: video.filename,
-    cover: cover ? cover.filename : '',
-    duration: Math.round(Number(duration) || 0),
+    desc: (old?.desc || ''),
+    subject: (old?.subject || ''),
+    members: old?.members || [],
+    file: video ? video.filename : old.file,
+    cover: cover ? cover.filename : (video ? '' : old.cover),
+    duration: video ? Math.round(Number(duration) || 0) : (old.duration || 0),
     views: old ? old.views : 0,
     featured: old ? old.featured : false,
     time: Date.now()
