@@ -22,10 +22,51 @@ fs.mkdirSync(UPLOAD_DIR, { recursive: true });
  * ratings: { 作品组id: { 评分者id: { dims:{content,creativity,tech,team,expr}, comment, tags[], time } } }
  */
 function loadData() {
-  try { return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')); }
-  catch { return { works: {}, ratings: {} }; }
+  try { return ensureClasses(JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))); }
+  catch { return ensureClasses({ works: {}, ratings: {} }); }
 }
 function saveData(d) { fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2)); }
+
+/* 班级 / 组别配置：
+ * classes: [{ id, name, groups:[{ id, name, password }] }]
+ * 默认 1 个班 8 个组，组 id 与历史作品数据（g1~g8）保持一致
+ */
+const TEACHER_PIN = process.env.TEACHER_PIN || '123456';
+const DEFAULT_PW = '123456';
+function ensureClasses(d) {
+  if (!Array.isArray(d.classes) || !d.classes.length) {
+    d.classes = [{
+      id: 'c1', name: '默认班级',
+      groups: Array.from({ length: 8 }, (_, i) => ({ id: 'g' + (i + 1), name: '第' + (i + 1) + '组', password: DEFAULT_PW }))
+    }];
+  }
+  d.classes.forEach(c => { if (!Array.isArray(c.groups)) c.groups = []; });
+  if (!d.works) d.works = {};
+  if (!d.ratings) d.ratings = {};
+  return d;
+}
+function pinOk(req) {
+  const p = req.body && req.body.pin !== undefined ? req.body.pin : req.query.pin;
+  return p === TEACHER_PIN;
+}
+function nextGroupId(d) {
+  const ids = new Set(d.classes.flatMap(c => c.groups.map(g => g.id)));
+  let n = 1;
+  while (ids.has('g' + n)) n++;
+  return 'g' + n;
+}
+function allGroups(d) { return d.classes.flatMap(c => c.groups); }
+/* 删除小组关联的视频、封面文件与全部评分 */
+function removeGroupData(d, gid) {
+  const w = d.works[gid];
+  if (w) {
+    fs.promises.unlink(path.join(UPLOAD_DIR, w.file)).catch(() => {});
+    if (w.cover) fs.promises.unlink(path.join(UPLOAD_DIR, w.cover)).catch(() => {});
+    delete d.works[gid];
+  }
+  delete d.ratings[gid];
+  Object.values(d.ratings).forEach(m => { delete m[gid]; });
+}
 
 /* 上传配置：视频 mp4/mov/avi 最大 2GB；封面 jpg/png */
 const upload = multer({
@@ -81,12 +122,128 @@ app.post('/api/upload', upload.fields([{ name: 'video', maxCount: 1 }, { name: '
 app.get('/api/works', (req, res) => res.json(loadData().works));
 app.get('/api/ratings', (req, res) => res.json(loadData().ratings));
 
+/* 班级与组别配置：带教师口令时返回各组登录密码 */
+app.get('/api/config', (req, res) => {
+  const d = loadData();
+  const admin = pinOk(req);
+  res.json({
+    classes: d.classes.map(c => ({
+      id: c.id, name: c.name,
+      groups: c.groups.map(g => admin
+        ? { id: g.id, name: g.name, password: g.password || DEFAULT_PW }
+        : { id: g.id, name: g.name })
+    }))
+  });
+});
+
+/* 学生登录：班级 + 组别 + 密码 */
+app.post('/api/login', (req, res) => {
+  const { groupId, password } = req.body || {};
+  const d = loadData();
+  const g = allGroups(d).find(x => x.id === groupId);
+  if (!g) return res.status(404).json({ error: '小组不存在，请联系老师' });
+  if ((g.password || DEFAULT_PW) !== String(password || '')) return res.status(403).json({ error: '密码错误，请向老师确认' });
+  res.json({ ok: true });
+});
+
+/* 班级管理 */
+app.post('/api/classes', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const name = (req.body.name || '').trim();
+  if (!name) return res.status(400).json({ error: '请输入班级名称' });
+  const d = loadData();
+  const id = 'c' + Date.now().toString(36);
+  d.classes.push({ id, name, groups: [] });
+  const cls = d.classes[d.classes.length - 1];
+  for (let i = 1; i <= 4; i++) cls.groups.push({ id: nextGroupId(d), name: '第' + i + '组', password: DEFAULT_PW });
+  saveData(d);
+  res.json({ ok: true });
+});
+
+app.patch('/api/classes/:id', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const name = (req.body.name || '').trim();
+  if (!name) return res.status(400).json({ error: '请输入班级名称' });
+  const d = loadData();
+  const c = d.classes.find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: '班级不存在' });
+  c.name = name;
+  saveData(d);
+  res.json({ ok: true });
+});
+
+app.delete('/api/classes/:id', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const d = loadData();
+  if (d.classes.length <= 1) return res.status(400).json({ error: '至少保留一个班级' });
+  const c = d.classes.find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: '班级不存在' });
+  c.groups.forEach(g => removeGroupData(d, g.id));
+  d.classes = d.classes.filter(x => x.id !== req.params.id);
+  saveData(d);
+  res.json({ ok: true });
+});
+
+/* 组别管理 */
+app.post('/api/classes/:id/groups', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const name = (req.body.name || '').trim();
+  if (!name) return res.status(400).json({ error: '请输入组别名称' });
+  const d = loadData();
+  const c = d.classes.find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: '班级不存在' });
+  c.groups.push({ id: nextGroupId(d), name, password: DEFAULT_PW });
+  saveData(d);
+  res.json({ ok: true });
+});
+
+app.patch('/api/groups/:gid', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const d = loadData();
+  const g = allGroups(d).find(x => x.id === req.params.gid);
+  if (!g) return res.status(404).json({ error: '小组不存在' });
+  if (req.body.name !== undefined) {
+    const name = String(req.body.name).trim();
+    if (!name) return res.status(400).json({ error: '请输入组别名称' });
+    g.name = name;
+  }
+  if (req.body.password !== undefined) {
+    const pw = String(req.body.password).trim();
+    if (pw.length < 4) return res.status(400).json({ error: '密码至少 4 位' });
+    g.password = pw;
+  }
+  saveData(d);
+  res.json({ ok: true });
+});
+
+app.delete('/api/groups/:gid', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const d = loadData();
+  const owner = d.classes.find(c => c.groups.some(g => g.id === req.params.gid));
+  if (!owner) return res.status(404).json({ error: '小组不存在' });
+  owner.groups = owner.groups.filter(g => g.id !== req.params.gid);
+  removeGroupData(d, req.params.gid);
+  saveData(d);
+  res.json({ ok: true });
+});
+
+/* 一键重置某班全部小组密码 */
+app.post('/api/classes/:id/reset-passwords', (req, res) => {
+  if (!pinOk(req)) return res.status(403).json({ error: '无权限' });
+  const d = loadData();
+  const c = d.classes.find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ error: '班级不存在' });
+  c.groups.forEach(g => { g.password = DEFAULT_PW; });
+  saveData(d);
+  res.json({ ok: true });
+});
+
 /* 提交五维评分（同一评分者对同一作品仅保留最新一次） */
 app.post('/api/rate', (req, res) => {
   const { workId, raterId, raterName, dims, comment, tags } = req.body || {};
-  const keys = ['content', 'creativity', 'tech', 'team', 'expr'];
+  const keys = ['know', 'av', 'story'];
   if (!workId || !raterId || !dims || !keys.every(k => dims[k] >= 1 && dims[k] <= 5))
-    return res.status(400).json({ error: '请完成五个维度的评分' });
+    return res.status(400).json({ error: '请完成三项评分' });
   if (workId === raterId)
     return res.status(400).json({ error: '不能给本组作品评分' });
   const data = loadData();

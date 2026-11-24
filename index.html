@@ -186,6 +186,18 @@
   .q-tags{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
   .q-tags button{ border:1px solid #dfe5f2; background:#f8faff; font-size:11.5px; color:#5a6478; border-radius:999px; padding:5px 12px; cursor:pointer; }
   .q-tags button:hover{ border-color:var(--blue); color:var(--blue); }
+  /* 三维评分项 */
+  .rate-dim{ display:flex; align-items:flex-start; gap:12px; padding:11px 0; border-bottom:1px dashed #eef1f8; }
+  .rate-dim:last-of-type{ border-bottom:none; }
+  .rate-dim .rd-t{ flex:1; min-width:0; }
+  .rate-dim .rd-t b{ display:block; font-size:13px; color:#2b3550; }
+  .rate-dim .rd-t span{ display:block; font-size:11px; color:var(--muted); line-height:1.6; margin-top:3px; }
+  .rate-dim .dstars{ display:flex; gap:3px; flex-shrink:0; padding-top:2px; }
+  .rate-dim .dstars span{ font-size:20px; cursor:pointer; color:#dfe4ee; transition:.1s; }
+  .rate-dim .dstars span.on{ color:#ffb61e; }
+  /* 班级 / 组别管理 */
+  .mg-row{ display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid #f3f5fa; flex-wrap:wrap; }
+  .pw-code{ font-family:ui-monospace,Menlo,Consolas,monospace; background:#f2f5fd; border-radius:6px; padding:2px 8px; font-size:12px; font-weight:700; letter-spacing:.5px; color:#2b3550; }
   .comment-item{ display:flex; gap:11px; padding:13px 0; border-bottom:1px solid #f3f5fa; }
   .comment-item:last-child{ border:none; }
   .c-hd{ font-size:12.5px; font-weight:700; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
@@ -234,13 +246,20 @@
 
 <script>
 /* ================= 基础 ================= */
-const GROUPS = Array.from({length:8},(_,i)=>({id:'g'+(i+1), name:'第'+(i+1)+'组'}));
 const TEACHER_PIN = '123456';
 const DEADLINE = new Date('2026-10-29T20:00:00');
-const DIMS = [['content','内容完整性'],['creativity','创意表现'],['tech','技术制作'],['team','团队协作'],['expr','表达清晰度']];
-const QUICK_TAGS = ['画面精美','逻辑清晰','配音专业','创意十足'];
+const DIMS = [
+  ['know','知识听得懂','科普知识讲得明白，看完能记住核心做法'],
+  ['av','画音看着顺','AI 配音清晰、字幕规范美观、画面过渡流畅'],
+  ['story','故事真有趣','主角形象生动，剧情吸引人，大家都爱看']
+];
+const DIM_ICON = ['①','②','③'];
+const QUICK_TAGS = ['知识超实用','讲解好清晰','配音真自然','字幕很规范','主角太萌了','封面超吸睛'];
 const AV_COLORS = ['#5b8def','#8a63d2','#e0648a','#3aa78d','#e0913a','#4aa3e0','#6b7fd7','#c05a3a'];
 const COURSE = 'AI健康科普视频制作';
+
+let CLASSES = [];
+let GROUPS = [];
 
 let DATA = { works:{}, ratings:{} };
 let ME = JSON.parse(localStorage.getItem('xkj_identity') || 'null');
@@ -264,7 +283,7 @@ function fmtDay(t){ const d=new Date(t); const today=new Date(); const yest=new 
   return `${p(d.getMonth()+1)}-${p(d.getDate())} ${hm}`; }
 
 /* 评分计算：内部 100 分制，界面展示 5 分制（与评分星级一致） */
-const rateAvg = r => (r.dims.content+r.dims.creativity+r.dims.tech+r.dims.team+r.dims.expr)/5; // 1-5
+const rateAvg = r => { const vals=Object.values(r.dims||{}).filter(v=>typeof v==='number'); return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0; }; // 1-5
 const rateScore = r => rateAvg(r)*20; // 0-100
 const disp = avg100 => (avg100/20).toFixed(2); // 展示为 5 分制
 function workRatings(wid){ return Object.entries(DATA.ratings[wid]||{}).map(([rid,r])=>({rid,...r})); }
@@ -273,7 +292,14 @@ function rankedWorks(){
   return Object.entries(DATA.works).map(([id,w])=>({id,...w,avg:workAvg(id),rc:workRatings(id).length}))
     .filter(w=>w.avg!=null).sort((a,b)=>b.avg-a.avg);
 }
-const gNameOf = id => GROUPS.find(g=>g.id===id)?.name || id;
+const groupById = id => GROUPS.find(g=>g.id===id);
+const gNameOf = id => { const g=groupById(id); if(!g) return id; return CLASSES.length>1 ? g.className+' · '+g.name : g.name; };
+/* 用服务端班级配置刷新 GROUPS（组 id 全局唯一） */
+function applyClasses(list){
+  CLASSES = (Array.isArray(list)&&list.length) ? list : [{id:'c1',name:'默认班级',groups:[]}];
+  GROUPS = CLASSES.flatMap(c=>(c.groups||[]).map(g=>({id:g.id,name:g.name,password:g.password,classId:c.id,className:c.name})));
+  if(ME && ME.role==='student' && !groupById(ME.group)){ ME=null; localStorage.removeItem('xkj_identity'); }
+}
 function starsHTML(avg100, size){
   const full = avg100==null ? 0 : Math.round(avg100/20);
   let h=''; for(let i=1;i<=5;i++) h+=`<span class="${i<=full?'':'off'}">★</span>`;
@@ -281,11 +307,23 @@ function starsHTML(avg100, size){
 }
 
 /* ================= 数据 ================= */
+let firstDataLoad = true;
 async function loadData(rerender=true){
   try{
-    const [w,r] = await Promise.all([fetch('/api/works').then(x=>x.json()), fetch('/api/ratings').then(x=>x.json())]);
+    const cfgUrl = (ME && ME.role==='teacher') ? '/api/config?pin='+encodeURIComponent(TEACHER_PIN) : '/api/config';
+    const [w,r,c] = await Promise.all([
+      fetch('/api/works').then(x=>x.json()),
+      fetch('/api/ratings').then(x=>x.json()),
+      fetch(cfgUrl).then(x=>x.json())
+    ]);
     DATA = {works:w||{}, ratings:r||{}};
-    if(rerender && !uploading && !location.hash.startsWith('#/group') && !location.hash.startsWith('#/work') && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')) renderRoute();
+    applyClasses(c && c.classes);
+    const inForm = location.hash.startsWith('#/group') || location.hash.startsWith('#/work');
+    if(rerender && !uploading && (firstDataLoad || !inForm) && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||'')){
+      firstDataLoad = false;
+      if(!ME){ renderApp(); return; }
+      renderRoute();
+    }
   }catch(e){}
 }
 async function api(url, body){
@@ -296,7 +334,10 @@ async function api(url, body){
 }
 
 /* ================= 身份 ================= */
-function openIdentityModal(){
+async function openIdentityModal(){
+  if(!CLASSES.length){
+    try{ const c=await fetch('/api/config').then(r=>r.json()); applyClasses(c&&c.classes); }catch(e){}
+  }
   const old = $('.modal-mask'); if(old) old.remove();
   const m = document.createElement('div'); m.className='modal-mask';
   m.innerHTML = `
@@ -308,8 +349,12 @@ function openIdentityModal(){
         <button id="rTeacher">👩‍🏫 我是教师</button>
       </div>
       <div id="stuFields">
-        <div class="f-label">你代表哪一组？（组长登录即可）</div>
-        <select class="f-select" id="idGroup">${GROUPS.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')}</select>
+        <div class="f-label">选择班级</div>
+        <select class="f-select" id="idClass">${CLASSES.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select>
+        <div class="f-label" style="margin-top:12px">选择组别</div>
+        <select class="f-select" id="idGroup"></select>
+        <div class="f-label" style="margin-top:12px">小组登录密码</div>
+        <input class="f-input" id="idPw" type="password" placeholder="向老师获取（初始 123456）">
       </div>
       <div id="teaFields" style="display:none">
         <div class="f-label">教师口令</div>
@@ -318,20 +363,31 @@ function openIdentityModal(){
       <div style="margin-top:20px"><button class="btn btn-blue" id="idOk" style="width:100%">进入平台</button></div>
     </div>`;
   document.body.appendChild(m);
+  const $c=m.querySelector('#idClass'), $g=m.querySelector('#idGroup');
+  const fillGroups=()=>{
+    const cls=CLASSES.find(c=>c.id===$c.value);
+    const gs=(cls&&cls.groups)||[];
+    $g.innerHTML=gs.length?gs.map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join(''):'<option value="">该班级暂无小组</option>';
+  };
+  $c.onchange=fillGroups; fillGroups();
   let role='student';
   m.querySelector('#rStudent').onclick=()=>{role='student';m.querySelector('#rStudent').classList.add('sel');m.querySelector('#rTeacher').classList.remove('sel');m.querySelector('#stuFields').style.display='';m.querySelector('#teaFields').style.display='none';};
   m.querySelector('#rTeacher').onclick=()=>{role='teacher';m.querySelector('#rTeacher').classList.add('sel');m.querySelector('#rStudent').classList.remove('sel');m.querySelector('#stuFields').style.display='none';m.querySelector('#teaFields').style.display='';};
-  m.querySelector('#idOk').onclick=()=>{
+  m.querySelector('#idOk').onclick=async()=>{
     if(role==='student'){
-      const group=m.querySelector('#idGroup').value;
-      ME={role:'student',name:gNameOf(group),group};
+      const group=$g.value;
+      if(!group) return toast('该班级还没有小组，请联系老师');
+      try{ await api('/api/login',{groupId:group,password:m.querySelector('#idPw').value}); }
+      catch(e){ return toast('❌ '+e.message); }
+      const g=groupById(group);
+      ME={role:'student',name:g?g.name:group,group,classId:g?g.classId:''};
     }else{
       if(m.querySelector('#idPin').value!==TEACHER_PIN) return toast('教师口令错误');
       ME={role:'teacher',name:'林老师'};
     }
     localStorage.setItem('xkj_identity',JSON.stringify(ME));
     m.remove(); location.hash = ME.role==='teacher' ? '#/teacher' : '#/home';
-    renderApp();
+    renderApp(); loadData();
   };
 }
 
@@ -341,7 +397,7 @@ function renderApp(){
   if(!ME){ $('#app').innerHTML=''; openIdentityModal(); return; }
   const isT = ME.role==='teacher';
   const menus = isT
-    ? [['#/teacher','工作台'],['#/teacher/videos','视频管理'],['#/teacher/groups','小组管理'],['#/teacher/analytics','成绩分析']]
+    ? [['#/teacher','工作台'],['#/teacher/videos','视频管理'],['#/teacher/classes','班级管理'],['#/teacher/groups','组别管理'],['#/teacher/analytics','成绩分析']]
     : [['#/home','首页'],['#/gallery','视频广场'],['#/ranking','排行榜'],['#/group','我的小组']];
   $('#app').innerHTML = `
     <header><div class="hd">
@@ -379,6 +435,7 @@ function renderRoute(){
   if(h.startsWith('#/work/')) return renderWork(decodeURIComponent(h.slice(7)));
   if(ME.role==='teacher'){
     if(h==='#/teacher/videos') return renderTVideos();
+    if(h==='#/teacher/classes') return renderTClasses();
     if(h==='#/teacher/groups') return renderTGroups();
     if(h==='#/teacher/analytics') return renderTAnalytics();
     return renderTHome();
@@ -535,7 +592,7 @@ function renderRanking(){
         </div>`:'').join('')}
     </div>
     <div class="card">
-      <div style="display:flex;align-items:baseline;margin-bottom:8px"><h3 style="margin:0">完整排名</h3><span style="font-size:11.5px;color:var(--muted);margin-left:8px">根据同学互评平均分实时计算</span><span style="flex:1"></span><a class="link" onclick="toast('评分规则：五个维度各占 20%，取所有评分平均')">评分规则</a></div>
+      <div style="display:flex;align-items:baseline;margin-bottom:8px"><h3 style="margin:0">完整排名</h3><span style="font-size:11.5px;color:var(--muted);margin-left:8px">根据同学互评平均分实时计算</span><span style="flex:1"></span><a class="link" onclick="toast('评分规则：知识听得懂、画音看着顺、故事真有趣三项各占 1/3，取所有评分平均')">评分规则</a></div>
       <table class="rank">
         <thead><tr><th style="width:70px">排名</th><th>小组</th><th>作品名称</th><th>评分人数</th><th>互评平均分</th><th>排名变化</th></tr></thead>
         <tbody>
@@ -735,7 +792,7 @@ function renderWork(wid){
           </div>
         </div>
         <div class="card" style="margin-top:16px">
-          <h3>同学评价 <span style="font-size:11px;color:var(--muted);font-weight:600">${rs.length} 条</span></h3>
+          <h3>作品评价 <span style="font-size:11px;color:var(--muted);font-weight:600">${rs.length} 条</span></h3>
           ${rs.length===0?'<div style="font-size:12.5px;color:var(--muted);padding:10px 0 4px">还没有评价，来抢沙发～</div>':''}
           ${rs.map(r=>`<div class="comment-item">
             ${avatar(r.raterName||r.rid)}
@@ -765,7 +822,7 @@ function renderWork(wid){
           <h3>评分概况</h3>
           <div style="margin-top:8px">${DIMS.map(([k,lb],i)=>`
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
-              <span style="font-size:12px;color:#3a4358;width:64px">${lb}</span>
+              <span style="font-size:12px;color:#3a4358;width:80px;flex-shrink:0">${lb}</span>
               <span class="dim-bar"><i style="width:${dimAvgs[i]/5*100}%"></i></span>
               <span class="dim-val">${dimAvgs[i]?dimAvgs[i].toFixed(1):'--'}</span>
             </div>`).join('')}
@@ -773,9 +830,13 @@ function renderWork(wid){
         </div>`
         :`<div class="card">
           <h3>为作品评分</h3>
-          <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">请根据以下维度客观评价，每项满分 5 分${myR?'（你已评分，可修改）':''}</div>
-          <div style="text-align:center;font-size:26px;letter-spacing:4px;margin-bottom:16px;color:#ffb61e" id="totalStars">${'★'.repeat(Math.round(Object.values(dimSel).filter(v=>typeof v==='number').reduce((a,b)=>a+b,0)/5)||0)}${'☆'.repeat(5-(Math.round(Object.values(dimSel).filter(v=>typeof v==='number').reduce((a,b)=>a+b,0)/5)||0))}</div>
-          ${DIMS.map(([k,lb])=>`<div class="dim-row"><span class="dl">${lb}</span><span class="dstars" data-k="${k}">${[1,2,3,4,5].map(i=>`<span data-v="${i}" class="${(dimSel[k]||0)>=i?'on':''}">★</span>`).join('')}</span><span class="dim-val" id="dv-${k}">${dimSel[k]?dimSel[k]+'.0':''}</span></div>`).join('')}
+          <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px">请根据以下三项感受打分，每项最高 5 颗星${myR?'（你已评分，可修改）':''}</div>
+          <div style="text-align:center;font-size:24px;letter-spacing:4px;margin:8px 0 4px;color:#ffb61e" id="totalStars">${(()=>{const v=DIMS.map(([k])=>dimSel[k]).filter(x=>x>0);const a=v.length?v.reduce((x,y)=>x+y,0)/v.length:0;return '★'.repeat(Math.round(a))+'☆'.repeat(5-Math.round(a));})()}</div>
+          ${DIMS.map(([k,lb,ds],i)=>`
+          <div class="rate-dim">
+            <div class="rd-t"><b>${DIM_ICON[i]} ${lb}</b><span>${ds}</span></div>
+            <span class="dstars" data-k="${k}">${[1,2,3,4,5].map(v=>`<span data-v="${v}" class="${(dimSel[k]||0)>=v?'on':''}">★</span>`).join('')}</span>
+          </div>`).join('')}
           <div class="f-label" style="margin-top:8px">评价与建议</div>
           <textarea class="f-area" id="fComment" placeholder="说说这个作品的亮点与建议…" style="min-height:90px">${esc((draft&&draft.comment)||(myR&&myR.comment)||'')}</textarea>
           <div class="q-tags">${QUICK_TAGS.map(t=>`<button data-t="${t}">${t}</button>`).join('')}</div>
@@ -784,7 +845,7 @@ function renderWork(wid){
         </div>
         <div class="card" style="margin-top:16px">
           <h3>评分规则</h3>
-          <div class="notice" style="background:#e9f9f1;color:#157a4e">✓ 每个小组只能提交一次评分，提交后可在截止前修改</div>
+          <div class="notice" style="background:#e9f9f1;color:#157a4e">✓ 共 3 项（知识听得懂 / 画音看着顺 / 故事真有趣），每项 5 颗星；每个小组只能提交一次评分，提交后可在截止前修改</div>
         </div>`}
       </div>
     </div>`;
@@ -804,13 +865,12 @@ function renderWork(wid){
     catch(e){ toast(e.message); }
   };
   if(!isMine && ME.role==='student'){
-    const updTotal=()=>{ const vals=DIMS.map(([k])=>dimSel[k]||0); const avg=vals.reduce((a,b)=>a+b,0)/5; $('#totalStars').textContent='★'.repeat(Math.round(avg))+'☆'.repeat(5-Math.round(avg)); };
+    const updTotal=()=>{ const vals=DIMS.map(([k])=>dimSel[k]).filter(v=>v>0); const avg=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0; $('#totalStars').textContent='★'.repeat(Math.round(avg))+'☆'.repeat(5-Math.round(avg)); };
     document.querySelectorAll('.dstars').forEach(ds=>{
       ds.querySelectorAll('span').forEach(s=>s.onclick=()=>{
         const k=ds.dataset.k, v=+s.dataset.v;
         dimSel[k]=v;
         ds.querySelectorAll('span').forEach(x=>x.classList.toggle('on',+x.dataset.v<=v));
-        $('#dv-'+k).textContent=v+'.0';
         updTotal();
       });
     });
@@ -824,9 +884,9 @@ function renderWork(wid){
       toast('💾 草稿已保存到本机');
     };
     $('#btnRate').onclick=async()=>{
-      if(!DIMS.every(([k])=>dimSel[k]>=1)) return toast('请完成五个维度的评分');
+      if(!DIMS.every(([k])=>dimSel[k]>=1)) return toast('请完成三项评分');
       const tags=QUICK_TAGS.filter(t=>$('#fComment').value.includes(t));
-      const {_wid,...dims}=dimSel;
+      const dims={}; DIMS.forEach(([k])=>{ dims[k]=dimSel[k]; });
       try{
         await api('/api/rate',{workId:wid,raterId,raterName:ME.name,dims,comment:$('#fComment').value,tags});
         localStorage.removeItem('draft_'+wid);
@@ -981,27 +1041,132 @@ function renderTVideos(){
   $('#tvq').oninput=e=>{ tvQ=e.target.value; const v=e.target,pos=v.selectionStart; renderTVideos(); const n=$('#tvq'); n.focus(); n.setSelectionRange(pos,pos); };
 }
 
-/* ================= 教师 · 小组管理 ================= */
+/* ================= 教师 · 班级管理 ================= */
+async function adminApi(url, method, body){
+  const res=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,pin:TEACHER_PIN})});
+  const j=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(j.error||'操作失败');
+  return j;
+}
+function renderTClasses(){
+  startTeacherTimer();
+  $('#view').innerHTML = crumb(`教师端 / <b>班级管理</b>`)+`
+    <div class="card">
+      <h3>新建班级 <span style="font-size:11px;color:var(--muted);font-weight:600">学生登录时先选班级，再选组别</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <input class="f-input" id="newClassName" placeholder="如：高一(1)班" style="max-width:300px">
+        <button class="btn btn-blue" id="btnAddClass">新建班级</button>
+      </div>
+      <div class="notice" style="margin-top:12px">新建班级会自动创建 4 个小组，可在「组别管理」中增删组别、查看或重置登录密码。</div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>班级列表 <span style="font-size:11px;color:var(--muted);font-weight:600">共 ${CLASSES.length} 个班级</span></h3>
+      <div style="margin-top:6px">
+      ${CLASSES.map(c=>{
+        const gs=c.groups||[];
+        const submitted=gs.filter(g=>DATA.works[g.id]).length;
+        return `<div class="mg-row">
+          <span class="lg-ic" style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#5b8cff,#3d5af1);display:grid;place-items:center;color:#fff;font-size:15px">🏫</span>
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${esc(c.name)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${gs.length} 个小组 · ${submitted} 组已提交作品</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="renameClass('${c.id}')">重命名</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetClassPw('${c.id}')">重置密码</button>
+          <button class="btn btn-red btn-sm" onclick="delClass('${c.id}','${esc(c.name)}')">删除</button>
+        </div>`;}).join('')}
+      </div>
+    </div>`;
+  $('#btnAddClass').onclick=async()=>{
+    const name=$('#newClassName').value.trim();
+    if(!name) return toast('请输入班级名称');
+    try{ await adminApi('/api/classes','POST',{name}); toast('✅ 班级已创建'); await loadData(false); renderTClasses(); }
+    catch(e){ toast('❌ '+e.message); }
+  };
+}
+async function renameClass(id){
+  const c=CLASSES.find(x=>x.id===id); if(!c) return;
+  const name=prompt('修改班级名称', c.name);
+  if(name===null) return;
+  if(!name.trim()) return toast('班级名称不能为空');
+  try{ await adminApi('/api/classes/'+id,'PATCH',{name:name.trim()}); toast('✅ 已更新'); await loadData(false); renderTClasses(); }
+  catch(e){ toast('❌ '+e.message); }
+}
+async function resetClassPw(id){
+  const c=CLASSES.find(x=>x.id===id); if(!c) return;
+  if(!confirm(`将「${c.name}」全部小组的登录密码重置为 123456？`)) return;
+  try{ await adminApi('/api/classes/'+id+'/reset-passwords','POST',{}); toast('✅ 密码已统一重置为 123456'); await loadData(false); renderTClasses(); }
+  catch(e){ toast('❌ '+e.message); }
+}
+async function delClass(id,name){
+  if(!confirm(`确定删除班级「${name}」？\n该班所有小组的视频、评分将一并删除，不可恢复！`)) return;
+  try{ await adminApi('/api/classes/'+id,'DELETE',{}); toast('🗑️ 班级已删除'); await loadData(false); renderTClasses(); }
+  catch(e){ toast('❌ '+e.message); }
+}
+
+/* ================= 教师 · 组别管理 ================= */
+let mgClass=null;
 function renderTGroups(){
   startTeacherTimer();
-  $('#view').innerHTML = crumb(`教师端 / <b>小组管理</b>`)+`
+  if(!mgClass || !CLASSES.some(c=>c.id===mgClass)) mgClass=CLASSES[0]?CLASSES[0].id:null;
+  const cls=CLASSES.find(c=>c.id===mgClass);
+  const gs=cls?(cls.groups||[]):[];
+  $('#view').innerHTML = crumb(`教师端 / <b>组别管理</b>`)+`
     <div class="filter-bar">
-      <div class="search-box">🔍<input placeholder="搜索学生姓名或小组" disabled></div>
+      <span style="font-size:12px;color:var(--muted)">选择班级</span>
+      <select class="f-select" id="mgClassSel" style="max-width:220px">
+        ${CLASSES.map(c=>`<option value="${c.id}" ${c.id===mgClass?'selected':''}>${esc(c.name)}</option>`).join('')}
+      </select>
       <span style="flex:1"></span>
-      <span style="font-size:12px;color:var(--muted)">共 ${GROUPS.length} 个小组</span>
+      <span style="font-size:12px;color:var(--muted)">共 ${gs.length} 个小组</span>
     </div>
-    <div class="g-grid">
-      ${GROUPS.map((g,i)=>{
+    <div class="card">
+      <h3>新增小组 <span style="font-size:11px;color:var(--muted);font-weight:600">学生用「班级 + 组别 + 密码」登录</span></h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <input class="f-input" id="newGroupName" placeholder="如：第${gs.length+1}组" style="max-width:260px">
+        <button class="btn btn-blue" id="btnAddGroup">新增小组</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>${cls?esc(cls.name):''} · 小组列表</h3>
+      ${gs.length===0?`<div style="color:var(--muted);font-size:12.5px;padding:20px 0;text-align:center">该班级还没有小组，先在上方新增</div>`
+      :gs.map((g,i)=>{
         const w=DATA.works[g.id];
-        return `<div class="g-card">
-          <div style="display:flex;align-items:baseline;gap:10px"><span class="num">${String(i+1).padStart(2,'0')}</span><div><div class="gname">${g.name}</div></div></div>
-          <div class="wtitle">${w?esc(w.title):'暂未提交视频'}</div>
-          <div class="g-foot">
-            ${w?'<span class="st-ok">已提交</span>':'<span class="st-no">未提交</span>'}
-            ${w?`<a class="link" onclick="location.hash='#/work/${g.id}'">查看小组 →</a>`:`<a class="link" onclick="toast('📢 已提醒 ${g.name} 尽快提交')">提醒提交</a>`}
-          </div>
+        return `<div class="mg-row">
+          <span class="num" style="font-size:13px;color:var(--muted);font-weight:800;width:24px">${String(i+1).padStart(2,'0')}</span>
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${esc(g.name)}${w?' <span class="g-tag green">已提交</span>':''}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${w?esc(w.title):'暂未提交视频'}</div></div>
+          <span style="font-size:11.5px;color:var(--muted)">登录密码</span>
+          <span class="pw-code">${esc(g.password||'123456')}</span>
+          <button class="btn btn-ghost btn-sm" onclick="renameGroup('${g.id}')">重命名</button>
+          <button class="btn btn-ghost btn-sm" onclick="setGroupPw('${g.id}')">改密码</button>
+          <button class="btn btn-red btn-sm" onclick="delGroup('${g.id}','${esc(g.name)}')">删除</button>
         </div>`;}).join('')}
     </div>`;
+  $('#mgClassSel').onchange=e=>{ mgClass=e.target.value; renderTGroups(); };
+  $('#btnAddGroup').onclick=async()=>{
+    const v=$('#newGroupName').value.trim() || ('第'+(gs.length+1)+'组');
+    try{ await adminApi('/api/classes/'+mgClass+'/groups','POST',{name:v}); toast('✅ 小组已新增'); await loadData(false); renderTGroups(); }
+    catch(e){ toast('❌ '+e.message); }
+  };
+}
+async function renameGroup(gid){
+  const g=groupById(gid); if(!g) return;
+  const name=prompt('修改组别名称', g.name);
+  if(name===null) return;
+  if(!name.trim()) return toast('组别名称不能为空');
+  try{ await adminApi('/api/groups/'+gid,'PATCH',{name:name.trim()}); toast('✅ 已更新'); await loadData(false); renderTGroups(); }
+  catch(e){ toast('❌ '+e.message); }
+}
+async function setGroupPw(gid){
+  const g=groupById(gid); if(!g) return;
+  const pw=prompt(`设置「${g.name}」的登录密码（至少 4 位）`, g.password||'123456');
+  if(pw===null) return;
+  try{ await adminApi('/api/groups/'+gid,'PATCH',{password:pw.trim()}); toast('✅ 密码已更新'); await loadData(false); renderTGroups(); }
+  catch(e){ toast('❌ '+e.message); }
+}
+async function delGroup(gid,name){
+  if(!confirm(`确定删除小组「${name}」？\n该组视频、评分将一并删除，不可恢复！`)) return;
+  try{ await adminApi('/api/groups/'+gid,'DELETE',{}); toast('🗑️ 小组已删除'); await loadData(false); renderTGroups(); }
+  catch(e){ toast('❌ '+e.message); }
 }
 
 /* ================= 教师 · 成绩分析 ================= */
